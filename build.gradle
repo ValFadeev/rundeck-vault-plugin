@@ -1,0 +1,90 @@
+plugins {
+    id 'pl.allegro.tech.build.axion-release' version '1.7.1'
+}
+ext.rundeckVersion='2.10.0'
+defaultTasks 'clean','build'
+apply plugin: 'java'
+apply plugin: 'idea'
+apply plugin: 'pl.allegro.tech.build.axion-release'
+sourceCompatibility = 1.8
+ext.rundeckPluginVersion= '1.2'
+
+/**
+ * Set this to a comma-separated list of full classnames of your implemented Rundeck
+ * plugins.
+ */
+ext.pluginClassNames='io.github.valfadeev.rundeck.plugin.vault.VaultStoragePlugin'
+
+scmVersion {
+    tag {
+        prefix = 'v'
+        versionSeparator = ''
+        def origDeserialize=deserialize
+        //apend .0 to satisfy semver if the tag version is only X.Y
+        deserialize = { config, position, tagName ->
+            def orig = origDeserialize(config, position, tagName)
+            if (orig.split('\\.').length < 3) {
+                orig += ".0"
+            }
+            orig
+        }
+    }
+}
+project.version = scmVersion.version
+
+repositories {
+    mavenCentral()
+}
+
+configurations{
+    //declare custom pluginLibs configuration to include only libs for this plugin
+    pluginLibs
+
+    //declare compile to extend from pluginLibs so it inherits the dependencies
+    compile{
+        extendsFrom pluginLibs
+    }
+}
+
+dependencies {
+    // add any third-party jar dependencies you wish to include in the plugin
+    // using the `pluginLibs` configuration as shown here:
+
+    pluginLibs group: 'com.bettercloud', name: 'vault-java-driver', version: '3.0.0', ext: 'jar'
+
+
+    //the compile dependency won't add the rundeck-core jar to the plugin contents
+    compile group: 'org.rundeck', name: 'rundeck-core', version: rundeckVersion
+    testCompile(
+            [group: 'junit', name: 'junit', version: '4.12', ext: 'jar'],
+            [group: 'org.hamcrest', name: 'hamcrest-core', version: '1.3', ext: 'jar'],
+            [group: 'org.hamcrest', name: 'hamcrest-library', version: '1.3', ext: 'jar']
+    )
+
+}
+
+// task to copy plugin libs to output/lib dir
+task copyToLib(type: Copy) {
+    into "$buildDir/output/lib"
+    from configurations.pluginLibs
+}
+
+
+jar {
+    from "$buildDir/output"
+    manifest {
+        def libList = configurations.pluginLibs.collect{'lib/'+it.name}.join(' ')
+        attributes 'Rundeck-Plugin-Classnames': pluginClassNames
+        attributes 'Rundeck-Plugin-File-Version': version
+        attributes 'Rundeck-Plugin-Version': rundeckPluginVersion, 'Rundeck-Plugin-Archive': 'true'
+        attributes 'Rundeck-Plugin-Libs': "${libList}"
+        attributes 'Main-Class': "io.github.valfadeev.rundeck.plugin.vault.VaultStoragePlugin"
+        attributes 'Class-Path': "${libList} lib/rundeck-core-${rundeckVersion}.jar"
+    }
+}
+//set jar task to depend on copyToLib
+jar.dependsOn(copyToLib)
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '4.0.2'
+}
