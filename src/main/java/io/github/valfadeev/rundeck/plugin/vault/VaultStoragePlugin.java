@@ -53,6 +53,14 @@ public class VaultStoragePlugin implements StoragePlugin, Configurable, Describa
     public VaultStoragePlugin() {}
 
     private static final String VAULT_STORAGE_KEY = "data";
+    private static final String RUNDECK_DATA_TYPE = "Rundeck-data-type";
+    private static final String RUNDECK_KEY_TYPE = "Rundeck-key-type";
+    private static final String RUNDECK_CONTENT_MASK = "Rundeck-content-mask";
+    private static final String PRIVATE_KEY_MIME_TYPE = "application/octet-stream";
+    private static final String PUBLIC_KEY_MIME_TYPE = "application/pgp-keys";
+    private static final String PASSWORD_MIME_TYPE = "application/x-rundeck-data-password";
+
+
     private String vaultPrefix;
     private Logical vault;
 
@@ -76,6 +84,19 @@ public class VaultStoragePlugin implements StoragePlugin, Configurable, Describa
 
     private boolean isDir(String key) {
         return key.endsWith("/");
+    }
+
+    private boolean isVaultDir(String key) {
+        try{
+            if(vault.list(getVaultPath(key)).size() > 0){
+                return true;
+            }else{
+                return false;
+            }
+        } catch (VaultException e) {
+            log.info("error:" + e.getMessage());
+            return false;
+        }
     }
 
     private enum KeyType {
@@ -164,6 +185,17 @@ public class VaultStoragePlugin implements StoragePlugin, Configurable, Describa
         } catch (ParseException e) {
         }
 
+        String type=payload.get(StorageUtil.RES_META_RUNDECK_CONTENT_TYPE);
+        if (type.equals(PRIVATE_KEY_MIME_TYPE)) {
+            builder.setMeta(RUNDECK_CONTENT_MASK, "content");
+            builder.setMeta(RUNDECK_KEY_TYPE, "private");
+        }else if (type.equals(PUBLIC_KEY_MIME_TYPE)){
+            builder.setMeta(RUNDECK_KEY_TYPE, "public");
+        }else if (type.equals(PASSWORD_MIME_TYPE)){
+            builder.setMeta(RUNDECK_CONTENT_MASK, "content");
+            builder.setMeta(RUNDECK_DATA_TYPE, "password");
+        }
+
         ByteArrayInputStream baiStream = new ByteArrayInputStream(data.getBytes());
         return new ResourceBase<>(path,
                 StorageUtil.withStream(baiStream, builder.getResourceMeta()),
@@ -210,7 +242,12 @@ public class VaultStoragePlugin implements StoragePlugin, Configurable, Describa
     @Override
     public boolean hasPath(Path path) {
         try {
-            return vault.list(getVaultPath(path.getPath())).size() > 0;
+            if(vault.list(getVaultPath(path.getPath())).size() > 0){
+                return true;
+            }
+
+            //check if the path is a key
+            return hasResource(path);
         } catch (VaultException e) {
             return false;
         }
@@ -251,7 +288,11 @@ public class VaultStoragePlugin implements StoragePlugin, Configurable, Describa
 
     @Override
     public Resource<ResourceMeta> getPath(Path path) {
-        return loadDir(path);
+        if (isVaultDir(path.toString())) {
+            return loadDir(path);
+        } else {
+            return loadResource(path, "read");
+        }
     }
 
     @Override
