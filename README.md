@@ -1,7 +1,5 @@
 # Rundeck Vault Storage Plugin
 
-**Work in progress. Do not use in production!**
-
 ## Purpose
 This is a [Storage Backend](http://rundeck.org/docs/plugins-user-guide/storage-plugins.html) plugin for storing Key Store data in [Vault](https://www.vaultproject.io/).
 
@@ -13,6 +11,18 @@ This is a [Storage Backend](http://rundeck.org/docs/plugins-user-guide/storage-p
     ```
   * Drop `rundeck-vault-plugin-<version>.jar` to `libext/` under Rundeck installation directory.
   * Restart Rundeck.
+
+## Configuration
+
+Add the following settings on $RDECK_BASE/etc/rundeck-config.properties
+
+```
+rundeck.storage.provider.1.type=vault-storage
+rundeck.storage.provider.1.path=keys
+rundeck.storage.provider.1.config.prefix=rundeck
+rundeck.storage.provider.1.config.address=$VAULT_URL
+rundeck.storage.provider.1.config.token=$VAULT_TOKEN
+```
 
 ## Minimal version requirements
   * Java 1.8
