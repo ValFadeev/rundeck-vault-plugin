@@ -17,7 +17,7 @@ ext.pluginClassNames='io.github.valfadeev.rundeck.plugin.vault.VaultStoragePlugi
 
 scmVersion {
     tag {
-        prefix = 'v'
+        prefix = ''
         versionSeparator = ''
         def origDeserialize=deserialize
         //apend .0 to satisfy semver if the tag version is only X.Y
