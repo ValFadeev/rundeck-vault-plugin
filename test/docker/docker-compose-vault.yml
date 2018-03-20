@@ -1,0 +1,35 @@
+version: '2'
+
+services:
+  vault:
+    image: vault
+    ports:
+      - "8200:8200"
+    cap_add:
+      - IPC_LOCK
+    environment:
+      - VAULT_DEV_ROOT_TOKEN_ID=${VAULT_TOKEN}
+      - VAULT_DEV_LISTEN_ADDRESS=vault:8200
+      - VAULT_ADDR=http://vault:8200
+      - VAULT_TOKEN=${VAULT_TOKEN}
+    entrypoint: vault server -config=/vault/config -dev
+  rundeck1:
+    hostname: rundeck1
+    build:
+      context: dockers/rundeckvault/
+    links:
+      - vault
+    environment:
+      - RUNDECK_NODE=rundeck1
+      - RUNDECK_URL=http://rundeck1:4440
+      - LAUNCHER_URL=${LAUNCHER_URL}
+      - SETUP_TEST_PROJECT=vaulttest
+      - VAULT_URL=http://vault:8200
+      - VAULT_TOKEN=${VAULT_TOKEN}
+      - CONFIG_SCRIPT_PRESTART=config/config_vault_plugin.sh
+    ports:
+      - "2222:22"
+      - "4440:4440"
+volumes:
+  logs:
+  resources:
