@@ -84,6 +84,7 @@ EXPOSE 22 4440 4443 4444
 RUN mkdir -p $HOME/scripts
 COPY scripts $HOME/scripts
 RUN sudo chmod -R a+x $HOME/scripts/*
+RUN sudo chown -R rundeck:rundeck $HOME/scripts
 
 RUN sudo mkdir -p /tests
 COPY tests /tests
