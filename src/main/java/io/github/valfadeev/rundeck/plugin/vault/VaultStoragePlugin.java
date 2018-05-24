@@ -62,6 +62,7 @@ public class VaultStoragePlugin implements StoragePlugin, Configurable, Describa
 
 
     private String vaultPrefix;
+    private String vaultSecretBackend;
     private Logical vault;
 
 
@@ -73,13 +74,15 @@ public class VaultStoragePlugin implements StoragePlugin, Configurable, Describa
     @Override
     public void configure(Properties configuration) throws ConfigurationException {
         vaultPrefix = configuration.getProperty(VAULT_PREFIX);
+        vaultSecretBackend = configuration.getProperty(VAULT_SECRET_BACKEND);
+
         vault = new VaultClientProvider(configuration)
                 .getVaultClient()
                 .logical();
     }
 
     private String getVaultPath(String rawPath) {
-        return String.format("secret/%s/%s", vaultPrefix, rawPath);
+        return String.format("%s/%s/%s", vaultSecretBackend, vaultPrefix, rawPath);
     }
 
     private boolean isDir(String key) {

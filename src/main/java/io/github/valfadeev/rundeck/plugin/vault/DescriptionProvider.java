@@ -141,6 +141,12 @@ class DescriptionProvider {
                         .description("Response read timeout, ms")
                         .defaultValue("20")
                 )
+                .property(PropertyBuilder.builder()
+                        .string(VAULT_SECRET_BACKEND)
+                        .title("Secret Backend")
+                        .description("The secret backend to use in vault")
+                        .defaultValue("secret")
+                )
                 .build();
     }
 }
