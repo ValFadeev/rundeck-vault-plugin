@@ -35,7 +35,7 @@ copy_jar(){
 	local FARGS=("$@")
 	local DIR=${FARGS[0]}
 	local -a VERS=( $( rd_get_plugin_version ) )
-	local JAR=rundeck-vault-plugin-${VERS[0]}.jar
+	local JAR=vault-storage-${VERS[0]}.jar
 	local buildJar=$PWD/build/libs/$JAR
 	test -f $buildJar || die "Jar file not found $buildJar"
 	mkdir -p $DIR
