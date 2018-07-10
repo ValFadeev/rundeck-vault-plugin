@@ -32,6 +32,8 @@ docker-compose -f $DOCKER_COMPOSE_SPEC up -d
 
 sleep 60
 
+docker-compose -f $DOCKER_COMPOSE_SPEC logs
+
 echo "up completed, running tests..."
 
 set +e
@@ -46,7 +48,6 @@ docker-compose -f $DOCKER_COMPOSE_SPEC exec -T --user rundeck rundeck1 bash \
 EC=$?
 echo "run_tests.sh finished with: $EC"
 
-docker-compose -f $DOCKER_COMPOSE_SPEC logs
 
 # Stop and clean all
 docker-compose -f $DOCKER_COMPOSE_SPEC down --volumes --remove-orphans
