@@ -141,6 +141,12 @@ class DescriptionProvider {
                         .description("Response read timeout, ms")
                         .defaultValue("20")
                 )
+                .property(PropertyBuilder.builder()
+                        .string(VAULT_STORAGE_BEHAVIOUR)
+                        .title("Storage Behaviour")
+                        .description("Use the default Rundeck Behaviour for key storage (with rundeck headers) or use just the key/value behaviour from vault. Options are: rundeck, vault")
+                        .defaultValue("rundeck")
+                 )
                 .build();
     }
 }

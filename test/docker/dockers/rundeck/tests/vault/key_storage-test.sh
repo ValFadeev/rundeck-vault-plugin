@@ -31,7 +31,7 @@ END
 
 
 
-it_list_token() {
+it_check_password() {
 
     bash -c "rd keys list -p keys/node | grep test.password" > test.output
 

@@ -51,6 +51,7 @@ run_tests(){
 
 	export RUNDECK_VERSION=$RUNDECK_VERSION
 	bash $DIR/test-vault.sh
+	bash $DIR/test-existing-vault.sh
 }
 run_docker_test(){
 	local FARGS=("$@")

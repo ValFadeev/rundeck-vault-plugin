@@ -154,6 +154,19 @@ else
   echo "### Prestart config not set. skipping..."
 fi
 
+export API_KEY=letmein99
+
+mkdir ~/.rd
+cat > ~/.rd/rd.conf <<END
+export RD_TOKEN=$API_KEY
+export RD_URL="http://localhost:4440"
+export RD_COLOR=0
+export RD_OPTS="-Dfile.encoding=utf-8"
+export RD_HTTP_TIMEOUT=300
+#export RD_DEBUG=1
+export RD_BYPASS_URL=$RUNDECK_URL
+END
+
 
 cat > $FWKPROPS <<END
 framework.server.name = $RUNDECK_NODE

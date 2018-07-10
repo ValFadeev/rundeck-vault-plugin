@@ -1,0 +1,21 @@
+<joblist>
+    <job>
+        <context>
+            <options preserveOrder='true'>
+                <option name='password' secure='true' storagePath='keys/multiples/password' valueExposed='true' />
+            </options>
+        </context>
+        <description></description>
+        <executionEnabled>true</executionEnabled>
+        <loglevel>INFO</loglevel>
+        <name>test-multiples-keys</name>
+        <nodeFilterEditable>false</nodeFilterEditable>
+        <scheduleEnabled>true</scheduleEnabled>
+        <sequence keepgoing='false' strategy='node-first'>
+            <command>
+                <exec>echo ${option.password}</exec>
+            </command>
+        </sequence>
+        <uuid>a674bd14-c8f4-42a3-b73a-02672ffee9bb</uuid>
+    </job>
+</joblist>
