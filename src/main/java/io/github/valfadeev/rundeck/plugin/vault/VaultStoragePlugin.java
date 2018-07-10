@@ -1,24 +1,12 @@
 package io.github.valfadeev.rundeck.plugin.vault;
 
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import com.bettercloud.vault.VaultException;
 import com.bettercloud.vault.api.Logical;
-import com.bettercloud.vault.response.LogicalResponse;
 import com.bettercloud.vault.response.VaultResponse;
 import com.dtolabs.rundeck.core.plugins.Plugin;
 import com.dtolabs.rundeck.core.plugins.configuration.Configurable;
@@ -26,8 +14,6 @@ import com.dtolabs.rundeck.core.plugins.configuration.ConfigurationException;
 import com.dtolabs.rundeck.core.plugins.configuration.Describable;
 import com.dtolabs.rundeck.core.plugins.configuration.Description;
 import com.dtolabs.rundeck.core.storage.ResourceMeta;
-import com.dtolabs.rundeck.core.storage.ResourceMetaBuilder;
-import com.dtolabs.rundeck.core.storage.StorageUtil;
 import com.dtolabs.rundeck.plugins.ServiceNameConstants;
 import com.dtolabs.rundeck.plugins.storage.StoragePlugin;
 import org.rundeck.storage.api.Path;
@@ -52,17 +38,19 @@ public class VaultStoragePlugin implements StoragePlugin, Configurable, Describa
 
     public VaultStoragePlugin() {}
 
-    private static final String VAULT_STORAGE_KEY = "data";
-    private static final String RUNDECK_DATA_TYPE = "Rundeck-data-type";
-    private static final String RUNDECK_KEY_TYPE = "Rundeck-key-type";
-    private static final String RUNDECK_CONTENT_MASK = "Rundeck-content-mask";
-    private static final String PRIVATE_KEY_MIME_TYPE = "application/octet-stream";
-    private static final String PUBLIC_KEY_MIME_TYPE = "application/pgp-keys";
-    private static final String PASSWORD_MIME_TYPE = "application/x-rundeck-data-password";
+    protected static final String VAULT_STORAGE_KEY = "data";
+    protected static final String RUNDECK_DATA_TYPE = "Rundeck-data-type";
+    protected static final String RUNDECK_KEY_TYPE = "Rundeck-key-type";
+    protected static final String RUNDECK_CONTENT_MASK = "Rundeck-content-mask";
+    protected static final String PRIVATE_KEY_MIME_TYPE = "application/octet-stream";
+    protected static final String PUBLIC_KEY_MIME_TYPE = "application/pgp-keys";
+    protected static final String PASSWORD_MIME_TYPE = "application/x-rundeck-data-password";
 
 
     private String vaultPrefix;
     private Logical vault;
+    //if is true, objects will be saved with rundeck default headers behaivour
+    private boolean rundeckObject=true;
 
 
     @Override
@@ -76,9 +64,15 @@ public class VaultStoragePlugin implements StoragePlugin, Configurable, Describa
         vault = new VaultClientProvider(configuration)
                 .getVaultClient()
                 .logical();
+
+        //check storage behaivour
+        String storageBehaviour=configuration.getProperty(VAULT_STORAGE_BEHAVIOUR);
+        if(storageBehaviour!=null && storageBehaviour.equals("vault")){
+            rundeckObject=false;
+        }
     }
 
-    private String getVaultPath(String rawPath) {
+    public static String getVaultPath(String rawPath, String vaultPrefix) {
         return String.format("secret/%s/%s", vaultPrefix, rawPath);
     }
 
@@ -87,10 +81,19 @@ public class VaultStoragePlugin implements StoragePlugin, Configurable, Describa
     }
 
     private boolean isVaultDir(String key) {
+
         try{
-            if(vault.list(getVaultPath(key)).size() > 0){
+            if(vault.list(getVaultPath(key,vaultPrefix)).size() > 0){
                 return true;
             }else{
+                if(!rundeckObject) {
+                    //key/value with multiples keys
+                    KeyObject object = this.getVaultObject(PathUtil.asPath(key));
+                    if (!object.isRundeckObject() && object.isMultiplesKeys()) {
+                        return true;
+                    }
+                }
+
                 return false;
             }
         } catch (VaultException e) {
@@ -119,39 +122,31 @@ public class VaultStoragePlugin implements StoragePlugin, Configurable, Describa
                     path);
         }
 
-        Map<String, String> meta = content.getMeta();
-        Map<String, Object> payload = new HashMap<>();
-        for (String k : meta.keySet()) {
-            payload.put(k, meta.get(k));
+
+        KeyObject object;
+        if(event.equals("create")){
+           if(rundeckObject){
+               object=new RundeckKey(path);
+           }else{
+               object=new VaultKey(path,null);
+           }
+        }else{
+           object = this.getVaultObject(path);
         }
 
-        if (event.equals("update")) {
-            DateFormat df = new SimpleDateFormat(StorageUtil.ISO_8601_FORMAT, Locale.ENGLISH);
-            Resource<ResourceMeta> existing = loadResource(path, "write");
-            payload.put(StorageUtil.RES_META_RUNDECK_CONTENT_CREATION_TIME,
-                    df.format(existing.getContents().getCreationTime()));
-        }
-
-        try {
-            String data = baoStream.toString("UTF-8");
-            payload.put(VAULT_STORAGE_KEY, data);
-        } catch (UnsupportedEncodingException e) {
-            throw new StorageException(
-                    String.format("Encountered unsupported encoding error: %s",
-                            e.getMessage()),
-                    StorageException.Event.valueOf(event.toUpperCase()),
-                    path);
-        }
+        Map<String, Object> payload=object.saveResource(content,event,baoStream);
 
         try {
-            return vault.write(getVaultPath(path.getPath()), payload);
+            return vault.write(getVaultPath(object.getPath().getPath(),vaultPrefix), payload);
         } catch (VaultException e) {
             throw new StorageException(
                     String.format("Encountered error while writing data to Vault %s",
-                            e.getMessage()),
+                                  e.getMessage()),
                     StorageException.Event.valueOf(event.toUpperCase()),
                     path);
         }
+
+
     }
 
     private Resource<ResourceMeta> loadDir(Path path) {
@@ -159,54 +154,30 @@ public class VaultStoragePlugin implements StoragePlugin, Configurable, Describa
     }
 
     private Resource<ResourceMeta> loadResource(Path path, String event) {
-        LogicalResponse response;
-        try {
-            response = vault.read(getVaultPath(path.getPath()));
-        } catch (VaultException e) {
+        KeyObject object = this.getVaultObject(path);
+        return loadResource(object,event);
+    }
+
+    private Resource<ResourceMeta> loadResource(KeyObject object, String event) {
+
+        if(object.isError()){
             throw new StorageException(
-            String.format("Encountered error while reading data from Vault %s",
-                    e.getMessage()),
+                    String.format("Encountered error while reading data from Vault %s",
+                                  object.getErrorMessage()),
                     StorageException.Event.valueOf(event.toUpperCase()),
-                    path);
+                    object.getPath());
         }
 
-        Map<String, String> payload = response.getData();
+        return object.loadResource();
 
-        String data = payload.get(VAULT_STORAGE_KEY);
 
-        ResourceMetaBuilder builder = new ResourceMetaBuilder();
-        builder.setContentLength(Long.parseLong(payload.get(StorageUtil.RES_META_RUNDECK_CONTENT_LENGTH)));
-        builder.setContentType(payload.get(StorageUtil.RES_META_RUNDECK_CONTENT_TYPE));
-
-        DateFormat df = new SimpleDateFormat(StorageUtil.ISO_8601_FORMAT, Locale.ENGLISH);
-        try {
-            builder.setCreationTime(df.parse(payload.get(StorageUtil.RES_META_RUNDECK_CONTENT_CREATION_TIME)));
-            builder.setModificationTime(df.parse(payload.get(StorageUtil.RES_META_RUNDECK_CONTENT_MODIFY_TIME)));
-        } catch (ParseException e) {
-        }
-
-        String type=payload.get(StorageUtil.RES_META_RUNDECK_CONTENT_TYPE);
-        if (type.equals(PRIVATE_KEY_MIME_TYPE)) {
-            builder.setMeta(RUNDECK_CONTENT_MASK, "content");
-            builder.setMeta(RUNDECK_KEY_TYPE, "private");
-        }else if (type.equals(PUBLIC_KEY_MIME_TYPE)){
-            builder.setMeta(RUNDECK_KEY_TYPE, "public");
-        }else if (type.equals(PASSWORD_MIME_TYPE)){
-            builder.setMeta(RUNDECK_CONTENT_MASK, "content");
-            builder.setMeta(RUNDECK_DATA_TYPE, "password");
-        }
-
-        ByteArrayInputStream baiStream = new ByteArrayInputStream(data.getBytes());
-        return new ResourceBase<>(path,
-                StorageUtil.withStream(baiStream, builder.getResourceMeta()),
-                false);
     }
 
     private Set<Resource<ResourceMeta>> listResources(Path path, KeyType type) {
         List<String> response;
 
         try {
-            response = vault.list(getVaultPath(path.getPath()));
+            response = vault.list(getVaultPath(path.getPath(),vaultPrefix));
         } catch (VaultException e) {
             throw StorageException.listException(
                     path,
@@ -225,15 +196,51 @@ public class VaultStoragePlugin implements StoragePlugin, Configurable, Describa
             filtered = response;
         }
 
+        //vault object with multiples keys
+        boolean isKeyMultipleValues=false;
+        KeyObject multivalueObject = null;
+        if(filtered.isEmpty() && !rundeckObject){
+            multivalueObject = this.getVaultObject(path);
+            if(!multivalueObject.isRundeckObject() && multivalueObject.isMultiplesKeys()){
+                isKeyMultipleValues=true;
+                filtered = new ArrayList<>(multivalueObject.getKeys().keySet());
+            }
+        }
+
         for (String item : filtered) {
             Path itemPath = PathUtil.appendPath(path, item);
-            Resource<ResourceMeta> resource;
+            Resource<ResourceMeta> resource=null;
             if (isDir(item)) {
                 resource = loadDir(itemPath);
             } else {
-                resource = loadResource(itemPath, "list");
+                KeyObject object = this.getVaultObject(itemPath);
+                if(rundeckObject){
+                    //normal case with rundeck format
+                    if(object.isRundeckObject()){
+                         resource = loadResource(object,"list");
+                    }
+                }else{
+                    //vault key/value format
+                    if(isKeyMultipleValues){
+                        //object with multiples keys
+                        KeyObject multipleValue= new VaultKey(itemPath, item, multivalueObject.getKeys().get(item));
+                        resource = loadResource(multipleValue,"list");
+                    }else {
+                        if(!object.isRundeckObject()){
+                            if (object.isMultiplesKeys()) {
+                                resource = loadDir(itemPath);
+                            }else {
+                                resource = loadResource(object,"list");
+                            }
+                        }
+                    }
+                }
             }
-            resources.add(resource);
+
+            if(resource!=null){
+                resources.add(resource);
+            }
+
         }
 
         return resources;
@@ -242,7 +249,12 @@ public class VaultStoragePlugin implements StoragePlugin, Configurable, Describa
     @Override
     public boolean hasPath(Path path) {
         try {
-            if(vault.list(getVaultPath(path.getPath())).size() > 0){
+            if(vault.list(getVaultPath(path.getPath(),vaultPrefix)).size() > 0){
+                return true;
+            }
+
+            KeyObject object = this.getVaultObject(path);
+            if(!object.isRundeckObject()&& object.isMultiplesKeys()){
                 return true;
             }
 
@@ -260,10 +272,12 @@ public class VaultStoragePlugin implements StoragePlugin, Configurable, Describa
 
     @Override
     public boolean hasResource(Path path) {
-        try {
-            return vault.read(getVaultPath(path.getPath())).getData().size() > 0;
-        } catch (VaultException e) {
+        KeyObject object=getVaultObject(path);
+
+        if(object.isError()){
             return false;
+        }else{
+            return true;
         }
     }
 
@@ -275,7 +289,19 @@ public class VaultStoragePlugin implements StoragePlugin, Configurable, Describa
     @Override
     public boolean hasDirectory(Path path) {
         try {
-            return vault.list(getVaultPath(path.getPath())).size() > 0;
+            List<String> list=vault.list(getVaultPath(path.getPath(),vaultPrefix));
+
+            if(list.size() > 0){
+                return list.size() > 0;
+            }else{
+                KeyObject object = this.getVaultObject(path);
+                if(object.isRundeckObject()==false && object.isMultiplesKeys()){
+                    return true;
+                }
+            }
+
+            return false;
+
         } catch (VaultException e) {
             return false;
         }
@@ -342,12 +368,8 @@ public class VaultStoragePlugin implements StoragePlugin, Configurable, Describa
 
     @Override
     public boolean deleteResource(Path path) {
-        try {
-            vault.delete(getVaultPath(path.getPath()));
-            return true;
-        } catch (VaultException e) {
-            return false;
-        }
+        KeyObject object = this.getVaultObject(path);
+        return object.delete(vault,vaultPrefix);
     }
 
     @Override
@@ -376,5 +398,18 @@ public class VaultStoragePlugin implements StoragePlugin, Configurable, Describa
     public Resource<ResourceMeta> updateResource(String path, ResourceMeta content) {
         return updateResource(PathUtil.asPath(path), content);
     }
+
+    public KeyObject getVaultObject(Path path){
+
+        KeyObject value= KeyObjectBuilder.builder()
+                                .path(path)
+                                .vault(vault)
+                                .vaultPrefix(vaultPrefix)
+                                .build();
+
+        return value;
+    }
+
+
 
 }
