@@ -75,7 +75,7 @@ public class VaultStoragePlugin implements StoragePlugin, Configurable, Describa
         }
     }
 
-    public static String getVaultPath(String rawPath, String vaultPrefix) {
+    public static String getVaultPath(String rawPath, String vaultSecretBackend, String vaultPrefix) {
         return String.format("%s/%s/%s", vaultSecretBackend, vaultPrefix, rawPath);
     }
 
@@ -86,7 +86,7 @@ public class VaultStoragePlugin implements StoragePlugin, Configurable, Describa
     private boolean isVaultDir(String key) {
 
         try{
-            if(vault.list(getVaultPath(key,vaultPrefix)).size() > 0){
+            if(vault.list(getVaultPath(key,vaultSecretBackend,vaultPrefix)).size() > 0){
                 return true;
             }else{
                 if(!rundeckObject) {
@@ -140,7 +140,7 @@ public class VaultStoragePlugin implements StoragePlugin, Configurable, Describa
         Map<String, Object> payload=object.saveResource(content,event,baoStream);
 
         try {
-            return vault.write(getVaultPath(object.getPath().getPath(),vaultPrefix), payload);
+            return vault.write(getVaultPath(object.getPath().getPath(),vaultSecretBackend,vaultPrefix), payload);
         } catch (VaultException e) {
             throw new StorageException(
                     String.format("Encountered error while writing data to Vault %s",
@@ -180,7 +180,7 @@ public class VaultStoragePlugin implements StoragePlugin, Configurable, Describa
         List<String> response;
 
         try {
-            response = vault.list(getVaultPath(path.getPath(),vaultPrefix));
+            response = vault.list(getVaultPath(path.getPath(),vaultSecretBackend,vaultPrefix));
         } catch (VaultException e) {
             throw StorageException.listException(
                     path,
@@ -252,7 +252,7 @@ public class VaultStoragePlugin implements StoragePlugin, Configurable, Describa
     @Override
     public boolean hasPath(Path path) {
         try {
-            if(vault.list(getVaultPath(path.getPath(),vaultPrefix)).size() > 0){
+            if(vault.list(getVaultPath(path.getPath(),vaultSecretBackend,vaultPrefix)).size() > 0){
                 return true;
             }
 
@@ -292,7 +292,7 @@ public class VaultStoragePlugin implements StoragePlugin, Configurable, Describa
     @Override
     public boolean hasDirectory(Path path) {
         try {
-            List<String> list=vault.list(getVaultPath(path.getPath(),vaultPrefix));
+            List<String> list=vault.list(getVaultPath(path.getPath(),vaultSecretBackend,vaultPrefix));
 
             if(list.size() > 0){
                 return list.size() > 0;
@@ -372,7 +372,7 @@ public class VaultStoragePlugin implements StoragePlugin, Configurable, Describa
     @Override
     public boolean deleteResource(Path path) {
         KeyObject object = this.getVaultObject(path);
-        return object.delete(vault,vaultPrefix);
+        return object.delete(vault,vaultSecretBackend,vaultPrefix);
     }
 
     @Override

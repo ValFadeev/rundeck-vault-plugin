@@ -108,10 +108,10 @@ public class RundeckKey extends KeyObject {
     }
 
     @Override
-    boolean delete(final Logical vault,String vaultPrefix) {
+    boolean delete(final Logical vault,String vaultSecretBackend, String vaultPrefix) {
 
         try {
-            vault.delete(VaultStoragePlugin.getVaultPath(path.getPath(),vaultPrefix));
+            vault.delete(VaultStoragePlugin.getVaultPath(path.getPath(), vaultSecretBackend, vaultPrefix));
             return true;
         } catch (VaultException e) {
             return false;
