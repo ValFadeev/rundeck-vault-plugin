@@ -20,6 +20,7 @@ Add the following settings on $RDECK_BASE/etc/rundeck-config.properties
 rundeck.storage.provider.1.type=vault-storage
 rundeck.storage.provider.1.path=keys
 rundeck.storage.provider.1.config.prefix=rundeck
+rundeck.storage.provider.1.config.secretBackend=secret
 rundeck.storage.provider.1.config.address=$VAULT_URL
 rundeck.storage.provider.1.config.token=$VAULT_TOKEN
 ```
