@@ -23,4 +23,5 @@ class ConfigOptions {
     static final String VAULT_APPROLE_ID = "approleId";
     static final String VAULT_APPROLE_SECRET_ID = "approleSecretId";
     static final String VAULT_SECRET_BACKEND = "secretBackend";
+    static final String VAULT_STORAGE_BEHAVIOUR = "storageBehaviour";
 }

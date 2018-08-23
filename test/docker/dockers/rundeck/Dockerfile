@@ -85,10 +85,16 @@ RUN mkdir -p $HOME/scripts
 COPY scripts $HOME/scripts
 RUN sudo chmod -R a+x $HOME/scripts/*
 RUN sudo chown -R rundeck:rundeck $HOME/scripts
-
 RUN sudo mkdir -p /tests
 COPY tests /tests
 RUN sudo chmod -R a+x /tests/*
+
+
+RUN mkdir -p $HOME/vault-tests
+COPY tests $HOME/vault-tests
+VOLUME $HOME/vault-tests
+
+COPY plugins $HOME/libext
 
 VOLUME /var/lib/docker
 #   VOLUME /test

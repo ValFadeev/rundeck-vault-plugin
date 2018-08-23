@@ -2,12 +2,11 @@
     <job>
         <context>
             <options preserveOrder='true'>
-                <option name='password' secure='true' storagePath='keys/node/test.password' valueExposed='true' />
+                <option name='password' secure='true' storagePath='keys/node/vault.password' valueExposed='true' />
             </options>
         </context>
         <description></description>
         <executionEnabled>true</executionEnabled>
-        <id>9a0a8668-9d8d-43c3-9f22-caa329af4fbb</id>
         <loglevel>INFO</loglevel>
         <name>test-password</name>
         <nodeFilterEditable>false</nodeFilterEditable>
