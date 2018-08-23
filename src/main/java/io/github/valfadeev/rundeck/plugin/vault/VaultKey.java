@@ -161,7 +161,7 @@ public class VaultKey extends KeyObject {
     }
 
     @Override
-    boolean delete(final Logical vault,String vaultPrefix) {
+    boolean delete(final Logical vault,String vaultSecretBackend, String vaultPrefix) {
         String event="delete";
 
         if(this.parent!=null){
@@ -171,7 +171,7 @@ public class VaultKey extends KeyObject {
             this.parent.getKeys().remove(key);
 
             try {
-                vault.write(VaultStoragePlugin.getVaultPath(this.parent.getPath().getPath(),vaultPrefix), this.parent.getKeys());
+                vault.write(VaultStoragePlugin.getVaultPath(this.parent.getPath().getPath(),vaultSecretBackend, vaultPrefix), this.parent.getKeys());
                 return true;
             } catch (VaultException e) {
                 throw new StorageException(
@@ -183,7 +183,7 @@ public class VaultKey extends KeyObject {
 
         }else{
             try {
-                vault.delete(VaultStoragePlugin.getVaultPath(path.getPath(),vaultPrefix));
+                vault.delete(VaultStoragePlugin.getVaultPath(path.getPath(),vaultSecretBackend, vaultPrefix));
                 return true;
             } catch (VaultException e) {
                 return false;

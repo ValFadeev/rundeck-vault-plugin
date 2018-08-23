@@ -21,7 +21,7 @@ public abstract class KeyObject {
 
     abstract Map<String, Object> saveResource(ResourceMeta content, String event, ByteArrayOutputStream baoStream);
     abstract ResourceBase loadResource();
-    abstract boolean delete(Logical vault,String vaultPrefix);
+    abstract boolean delete(Logical vault,String vaultSecretBackend ,String vaultPrefix);
 
     //empty object or null object
     public KeyObject(Path path) {

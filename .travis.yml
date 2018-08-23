@@ -8,7 +8,7 @@ before_install:
   - sudo apt-get update -qq
   - sudo chsh --shell $(which bash)
 script:
-    - './gradlew clean build && DOCKER_COMPOSE_SPEC=docker-compose-vault.yaml bash run-docker-vault-tests.sh'
+    - './gradlew clean build && bash run-docker-vault-tests.sh'
 addons:
   hostname: rdbuild
   apt:

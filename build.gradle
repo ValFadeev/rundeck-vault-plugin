@@ -1,7 +1,7 @@
 plugins {
     id 'pl.allegro.tech.build.axion-release' version '1.7.1'
 }
-ext.rundeckVersion='2.10.0'
+ext.rundeckVersion='3.0.2-20180803'
 defaultTasks 'clean','build'
 apply plugin: 'java'
 apply plugin: 'idea'
@@ -16,6 +16,7 @@ ext.rundeckPluginVersion= '1.2'
 ext.pluginClassNames='io.github.valfadeev.rundeck.plugin.vault.VaultStoragePlugin'
 
 scmVersion {
+    ignoreUncommittedChanges = false
     tag {
         prefix = ''
         versionSeparator = ''
