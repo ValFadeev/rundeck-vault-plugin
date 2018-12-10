@@ -41,7 +41,7 @@ it_check_key_value_job() {
     bash -c "rd run -i $JOBID -p $RUNDECK_PROJECT"
 
     cmdout=($(bash -c "rd executions follow  -e 1 | grep -v '^#' "))
-    expout=($(curl -s -H "X-Vault-Token: $VAULT_TOKEN"  http://vault:8200/v1/secret/rundeck/keys/node/vault.password | jq .data.value))
+    expout=($(curl -s -H "X-Vault-Token: $VAULT_TOKEN"  http://vault:8200/v1/rundeckbackend/app/keys/node/vault.password | jq .data.value))
     echo "${cmdout[@]}"
     if ! test ${#expout[*]} = ${#cmdout[*]}
     then
@@ -112,7 +112,7 @@ END
         exit 1
     fi
 
-    cmdout=($(curl -s -H "X-Vault-Token: $VAULT_TOKEN"  http://vault:8200/v1/secret/rundeck/keys/node/vault.password > test.output))
+    cmdout=($(curl -s -H "X-Vault-Token: $VAULT_TOKEN"  http://vault:8200/v1/rundeckbackend/app/keys/node/vault.password > test.output))
     # diff with expected
     cat >expected.output <<END
 {"errors":[]}
@@ -190,7 +190,7 @@ it_check_multiple_key_value_job() {
     bash -c "rd run -i $JOBID -p $RUNDECK_PROJECT"
 
     cmdout=($(bash -c "rd executions follow  -e 2 | grep -v '^#' "))
-    expout=($(curl -s -H "X-Vault-Token: $VAULT_TOKEN"  http://vault:8200/v1/secret/rundeck/keys/multiples | jq .data.password))
+    expout=($(curl -s -H "X-Vault-Token: $VAULT_TOKEN"  http://vault:8200/v1/rundeckbackend/app/keys/multiples | jq .data.password))
     echo "${cmdout[@]}"
     if ! test ${#expout[*]} = ${#cmdout[*]}
     then

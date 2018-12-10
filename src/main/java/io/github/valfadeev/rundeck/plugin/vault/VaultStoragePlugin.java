@@ -76,7 +76,8 @@ public class VaultStoragePlugin implements StoragePlugin, Configurable, Describa
     }
 
     public static String getVaultPath(String rawPath, String vaultSecretBackend, String vaultPrefix) {
-        return String.format("%s/%s/%s", vaultSecretBackend, vaultPrefix, rawPath);
+        String path= String.format("%s/%s/%s", vaultSecretBackend, vaultPrefix, rawPath);
+        return path;
     }
 
     private boolean isDir(String key) {
@@ -181,6 +182,7 @@ public class VaultStoragePlugin implements StoragePlugin, Configurable, Describa
 
         try {
             response = vault.list(getVaultPath(path.getPath(),vaultSecretBackend,vaultPrefix));
+
         } catch (VaultException e) {
             throw StorageException.listException(
                     path,
@@ -211,12 +213,15 @@ public class VaultStoragePlugin implements StoragePlugin, Configurable, Describa
         }
 
         for (String item : filtered) {
+
             Path itemPath = PathUtil.appendPath(path, item);
+
             Resource<ResourceMeta> resource=null;
             if (isDir(item)) {
                 resource = loadDir(itemPath);
             } else {
                 KeyObject object = this.getVaultObject(itemPath);
+
                 if(rundeckObject){
                     //normal case with rundeck format
                     if(object.isRundeckObject()){
@@ -408,6 +413,7 @@ public class VaultStoragePlugin implements StoragePlugin, Configurable, Describa
                                 .path(path)
                                 .vault(vault)
                                 .vaultPrefix(vaultPrefix)
+                                .vaultSecretBackend(vaultSecretBackend)
                                 .build();
 
         return value;

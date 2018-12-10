@@ -11,6 +11,7 @@ public class KeyObjectBuilder {
     Path            path;
     Logical         vault;
     String          vaultPrefix;
+    String          vaultSecretBackend;
 
     static KeyObjectBuilder builder() {
         return new KeyObjectBuilder();
@@ -31,15 +32,17 @@ public class KeyObjectBuilder {
         return this;
     }
 
-    private String getVaultPath(String rawPath) {
-        return String.format("secret/%s/%s", vaultPrefix, rawPath);
+    KeyObjectBuilder vaultSecretBackend(String vaultSecretBackend){
+        this.vaultSecretBackend = vaultSecretBackend;
+        return this;
     }
+
 
     KeyObject build(){
         LogicalResponse response;
         KeyObject object;
         try {
-            response = vault.read(getVaultPath(path.getPath()));
+            response = vault.read(VaultStoragePlugin.getVaultPath(path.getPath(),vaultSecretBackend,vaultPrefix));
             String data = response.getData().get(VaultStoragePlugin.VAULT_STORAGE_KEY);
 
             if(data !=null) {
@@ -83,7 +86,7 @@ public class KeyObjectBuilder {
 
         Path parentPath = PathUtil.parentPath(path);
         try {
-            response = vault.read(getVaultPath(parentPath.getPath()));
+            response = vault.read(VaultStoragePlugin.getVaultPath(parentPath.getPath(),vaultSecretBackend,vaultPrefix));
             parentObject=new VaultKey(response, parentPath);
         } catch (VaultException e) {
 
