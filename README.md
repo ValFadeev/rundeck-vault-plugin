@@ -25,6 +25,20 @@ rundeck.storage.provider.1.config.address=$VAULT_URL
 rundeck.storage.provider.1.config.token=$VAULT_TOKEN
 ```
 
+For existing vault storage, probably you will need to remove the default `keys` path added by default for rundeck.
+You can use these settings for an existing vault storage:
+
+```
+rundeck.storage.provider.1.type=vault-storage
+rundeck.storage.provider.1.path=keys
+rundeck.storage.provider.1.removePathPrefix=true
+rundeck.storage.provider.1.config.prefix=someprefix
+rundeck.storage.provider.1.config.secretBackend=mybackend
+rundeck.storage.provider.1.config.address=$VAULT_URL
+rundeck.storage.provider.1.config.token=$VAULT_TOKEN
+rundeck.storage.provider.1.config.storageBehaviour=vault
+```
+
 ## Minimal version requirements
   * Java 1.8
   * Rundeck 2.10.0
