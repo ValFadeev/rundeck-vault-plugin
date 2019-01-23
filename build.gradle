@@ -79,7 +79,7 @@ jar {
         attributes 'Rundeck-Plugin-Description' : 'This is a Storage Backend plugin for storing Key Store data in Vault.'
         attributes 'Rundeck-Plugin-Rundeck-Compatibility-Version': '3.0.2+'
         attributes 'Rundeck-Plugin-Tags': 'java,storage,vault'
-        attributes 'Rundeck-Plugin-License': 'Apache 2.0'
+        attributes 'Rundeck-Plugin-License': 'MIT'
         attributes 'Rundeck-Plugin-Source-Link': 'https://github.com/rundeck-plugins/vault-storage'
         attributes 'Rundeck-Plugin-Target-Host-Compatibility': 'all'
         attributes 'Rundeck-Plugin-Author': 'Rundeck, Inc.'
