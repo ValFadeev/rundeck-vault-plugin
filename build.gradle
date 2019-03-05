@@ -75,6 +75,14 @@ jar {
     from "$buildDir/output"
     manifest {
         def libList = configurations.pluginLibs.collect{'lib/'+it.name}.join(' ')
+        attributes 'Rundeck-Plugin-Name' : 'Vault Storage'
+        attributes 'Rundeck-Plugin-Description' : 'This is a Storage Backend plugin for storing Key Store data in Vault.'
+        attributes 'Rundeck-Plugin-Rundeck-Compatibility-Version': '3.0.2+'
+        attributes 'Rundeck-Plugin-Tags': 'java,storage,vault'
+        attributes 'Rundeck-Plugin-License': 'MIT'
+        attributes 'Rundeck-Plugin-Source-Link': 'https://github.com/rundeck-plugins/vault-storage'
+        attributes 'Rundeck-Plugin-Target-Host-Compatibility': 'all'
+        attributes 'Rundeck-Plugin-Author': 'Rundeck, Inc.'
         attributes 'Rundeck-Plugin-Classnames': pluginClassNames
         attributes 'Rundeck-Plugin-File-Version': version
         attributes 'Rundeck-Plugin-Version': rundeckPluginVersion, 'Rundeck-Plugin-Archive': 'true'
