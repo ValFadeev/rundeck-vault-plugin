@@ -4,11 +4,18 @@ import com.dtolabs.rundeck.core.plugins.configuration.Description;
 import com.dtolabs.rundeck.plugins.util.DescriptionBuilder;
 import com.dtolabs.rundeck.plugins.util.PropertyBuilder;
 
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+
 import static io.github.valfadeev.rundeck.plugin.vault.SupportedAuthBackends.*;
 import static io.github.valfadeev.rundeck.plugin.vault.ConfigOptions.*;
 
 
 class DescriptionProvider {
+
+
+
     static Description getDescription() {
         return DescriptionBuilder.builder()
                 .name("vault-storage")
@@ -153,6 +160,13 @@ class DescriptionProvider {
                         .description("Use the default Rundeck Behaviour for key storage (with rundeck headers) or use just the key/value behaviour from vault. Options are: rundeck, vault")
                         .defaultValue("rundeck")
                  )
+                .property(PropertyBuilder.builder()
+                        .select(VAULT_ENGINE_VERSION)
+                        .title("Vault Engine Version")
+                        .description("Key/Value Secret Engine Config")
+                        .values(Arrays.asList("1","2"))
+                        .defaultValue("1")
+                )
                 .build();
     }
 }

@@ -1,0 +1,21 @@
+<joblist>
+    <job>
+        <context>
+            <options preserveOrder='true'>
+                <option name='password' secure='true' storagePath='keys/node/vault.password' valueExposed='true' />
+            </options>
+        </context>
+        <description></description>
+        <executionEnabled>true</executionEnabled>
+        <loglevel>INFO</loglevel>
+        <name>test-password</name>
+        <nodeFilterEditable>false</nodeFilterEditable>
+        <scheduleEnabled>true</scheduleEnabled>
+        <sequence keepgoing='false' strategy='node-first'>
+            <command>
+                <exec>echo ${option.password}</exec>
+            </command>
+        </sequence>
+        <uuid>9a0a8668-9d8d-43c3-9f22-caa329af4fbb</uuid>
+    </job>
+</joblist>

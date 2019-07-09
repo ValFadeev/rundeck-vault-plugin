@@ -49,6 +49,7 @@ run_tests(){
 
 	bash $DIR/test-vault.sh
 	bash $DIR/test-existing-vault.sh
+    bash $DIR/test-existing-vault1.x.sh
 }
 run_docker_test(){
 	local FARGS=("$@")

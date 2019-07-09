@@ -1,4 +1,5 @@
-FROM rundeck/rundeck:SNAPSHOT
+ARG IMAGE
+FROM ${IMAGE}
 
 USER root
 
@@ -27,19 +28,11 @@ WORKDIR $HOME
 USER rundeck
 
 COPY --chown=rundeck:root remco /etc/remco
-
-# Copy files.
-RUN sudo mkdir -p /tests
-COPY tests /tests
-RUN sudo chmod -R a+x /tests/*
-
-RUN mkdir -p $HOME/vault-tests
-COPY tests $HOME/vault-tests
-RUN sudo chown -R rundeck:root $HOME/vault-tests
-RUN sudo chmod -R a+x $HOME/vault-tests/*
-
-VOLUME $HOME/vault-tests
+COPY --chown=rundeck:root logback.groovy /home/rundeck/server/config
 
 COPY --chown=rundeck:root ./plugins ./libext
 
+VOLUME ["/home/rundeck/server/data"]
 
+EXPOSE 4440
+ENTRYPOINT [ "docker-lib/entry.sh" ]

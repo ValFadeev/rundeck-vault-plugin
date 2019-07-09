@@ -1,10 +1,11 @@
 #!/bin/bash
 
-export DOCKER_COMPOSE_SPEC=docker-compose-vault.yml
-export TEST_DIR=/home/rundeck/vault-tests/vault
+set -eu
+
+export DOCKER_COMPOSE_SPEC=docker-compose-existing-vault1.x.yml
+export TEST_DIR=/home/rundeck/vault-tests/existing-vault-eng2
 export TEST_SCRIPT=/home/rundeck/vault-tests/run-tests.sh
 export VAULT_TOKEN=thisisatoken123.
-
 
 # clean up docker env
 docker-compose -f $DOCKER_COMPOSE_SPEC down --volumes --remove-orphans
@@ -20,8 +21,6 @@ docker-compose -f $DOCKER_COMPOSE_SPEC up -d
 
 sleep 60
 
-docker-compose -f $DOCKER_COMPOSE_SPEC logs
-
 echo "up completed, running tests..."
 
 set +e
@@ -36,6 +35,7 @@ docker-compose -f $DOCKER_COMPOSE_SPEC exec -T --user rundeck rundeck1 bash \
 EC=$?
 echo "run_tests.sh finished with: $EC"
 
+docker-compose -f $DOCKER_COMPOSE_SPEC logs
 
 # Stop and clean all
 docker-compose -f $DOCKER_COMPOSE_SPEC down --volumes --remove-orphans

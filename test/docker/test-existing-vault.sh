@@ -13,7 +13,7 @@ docker-compose -f $DOCKER_COMPOSE_SPEC down --volumes --remove-orphans
 set -e
 
 # re-build docker env
-docker-compose -f $DOCKER_COMPOSE_SPEC build rundeck1
+docker-compose -f $DOCKER_COMPOSE_SPEC build
 
 
 # run docker

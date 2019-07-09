@@ -24,13 +24,14 @@ class VaultClientProvider {
     Vault getVaultClient() throws ConfigurationException {
         final Integer vaultMaxRetries = Integer.parseInt(configuration.getProperty(VAULT_MAX_RETRIES));
         final Integer vaultRetryIntervalMilliseconds = Integer.parseInt(configuration.getProperty(VAULT_RETRY_INTERVAL_MILLISECONDS));
+        final Integer vaultEngineVersion = Integer.parseInt(configuration.getProperty(VAULT_ENGINE_VERSION));
 
         VaultConfig vaultConfig = getVaultConfig();
 
         try {
             String authToken = getVaultAuthToken();
             vaultConfig.token(authToken).build();
-            return new Vault(vaultConfig)
+            return new Vault(vaultConfig, vaultEngineVersion)
                     .withRetries(vaultMaxRetries,
                             vaultRetryIntervalMilliseconds);
         } catch (VaultException e) {
