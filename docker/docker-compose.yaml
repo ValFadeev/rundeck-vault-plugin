@@ -1,0 +1,53 @@
+version: '2'
+
+services:
+  vault:
+    build:
+      context: vault
+      args:
+        IMAGE: ${VAULT_IMAGE}
+    ports:
+      - "8200:8200"
+    cap_add:
+      - IPC_LOCK
+    environment:
+      - VAULT_DEV_ROOT_TOKEN_ID=${VAULT_TOKEN}
+      - VAULT_DEV_LISTEN_ADDRESS=vault:8200
+      - VAULT_ADDR=http://vault:8200
+      - VAULT_TOKEN=${VAULT_TOKEN}
+  rundeck:
+    hostname: rundeck
+    build:
+      context: rundeck
+      args:
+        IMAGE: ${RUNDECK_IMAGE}
+    mem_limit: ${mem_limit}
+    command: -Dlogging.config=/home/rundeck/server/config/logback.groovy
+    links:
+    - vault
+    environment:
+    - RUNDECK_GRAILS_URL=http://localhost:4440
+    - RUNDECK_DATABASE_DRIVER=com.mysql.jdbc.Driver
+    - RUNDECK_DATABASE_USERNAME=rundeck
+    - RUNDECK_DATABASE_PASSWORD=rundeck
+    - RUNDECK_DATABASE_URL=jdbc:mysql://mysql/rundeck?autoReconnect=true&useSSL=false
+    - RUNDECK_STORAGE_PROVIDER_1_TYPE=vault-storage
+    - RUNDECK_STORAGE_PROVIDER_1_PATH=keys
+    - RUNDECK_STORAGE_PROVIDER_1_REMOVEPATHPREFIX=true
+    - RUNDECK_STORAGE_PROVIDER_1_CONFIG_SECRETBACKEND=secret
+    - RUNDECK_STORAGE_PROVIDER_1_CONFIG_PREFIX=app
+    - RUNDECK_STORAGE_PROVIDER_1_CONFIG_ADDRESS=http://vault:8200
+    - RUNDECK_STORAGE_PROVIDER_1_CONFIG_TOKEN=${VAULT_TOKEN}
+    - RUNDECK_STORAGE_PROVIDER_1_CONFIG_BEHAVIOUR=vault
+    - RUNDECK_STORAGE_PROVIDER_1_CONFIG_ENGINEVERSION=2
+    ports:
+    - "4440:4440"
+  mysql:
+    image: mysql:5.7
+    ports:
+      - "33060:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=rundeck
+      - MYSQL_USER=rundeck
+      - MYSQL_PASSWORD=rundeck

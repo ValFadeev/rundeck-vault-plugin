@@ -5,7 +5,7 @@ services:
     build:
       context: dockers/vault
       args:
-        IMAGE: vault:0.9.6
+        IMAGE: vault:1.1.3
     ports:
       - "8200"
     cap_add:
@@ -23,17 +23,18 @@ services:
     links:
     - vault
     environment:
-    - RUNDECK_GRAILS_URL=http://rundeck1:4440
+    - RUNDECK_GRAILS_URL=http://localhost:4440
     - RUNDECK_NODE=rundeck1
     - SETUP_TEST_PROJECT=vaulttest
     - RUNDECK_STORAGE_PROVIDER_1_TYPE=vault-storage
     - RUNDECK_STORAGE_PROVIDER_1_PATH=keys
-    - RUNDECK_STORAGE_PROVIDER_1_REMOVEPATHPREFIX=true
-    - RUNDECK_STORAGE_PROVIDER_1_CONFIG_SECRETBACKEND=rundeckbackend
-    - RUNDECK_STORAGE_PROVIDER_1_CONFIG_PREFIX=app
+    - RUNDECK_STORAGE_PROVIDER_1_REMOVEPATHPREFIX=false
+    - RUNDECK_STORAGE_PROVIDER_1_CONFIG_SECRETBACKEND=secret
+    - RUNDECK_STORAGE_PROVIDER_1_CONFIG_PREFIX=rundeck
     - RUNDECK_STORAGE_PROVIDER_1_CONFIG_ADDRESS=http://vault:8200
     - RUNDECK_STORAGE_PROVIDER_1_CONFIG_TOKEN=${VAULT_TOKEN}
     - RUNDECK_STORAGE_PROVIDER_1_CONFIG_BEHAVIOUR=vault
+    - RUNDECK_STORAGE_PROVIDER_1_CONFIG_ENGINEVERSION=2
     - VAULT_TOKEN=${VAULT_TOKEN}
     ports:
     - "4440:4440"

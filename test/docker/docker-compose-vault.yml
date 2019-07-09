@@ -2,7 +2,10 @@ version: '2'
 
 services:
   vault:
-    build: dockers/vault
+    build:
+      context: dockers/vault
+      args:
+        IMAGE: vault:0.9.6
     ports:
       - "8200"
     cap_add:
