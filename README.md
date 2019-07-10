@@ -14,8 +14,162 @@ This is a [Storage Backend](http://rundeck.org/docs/plugins-user-guide/storage-p
 
 ## Configuration
 
-Add the following settings on $RDECK_BASE/etc/rundeck-config.properties
+Add the settings to $RDECK_BASE/etc/rundeck-config.properties
 
+* **prefix**: Vault Prefix in Vault secret backend
+
+```rundeck.storage.provider.[index].config.prefix=rundeck```
+
+* **address**: Vault Address of the Vault server
+
+```rundeck.storage.provider.[index].config.address=https://vaultURL:8200```
+
+* **authBackend**: Vault Authentication backend
+
+```
+rundeck.storage.provider.[index].config.authBackend=authBackend
+```
+
+Default value: token
+
+Allowed values: approle, cert, github, token, userpass
+
+* **token**: Vault authentication token. Required, if authentication backend is 'token'
+
+```rundeck.storage.provider.[index].config.token=xxxxxx```
+
+
+* **username**: User name. Required for user/password and LDAP authentication backend
+
+```
+rundeck.storage.provider.[index].config.username=username
+```
+
+* **password**: Password. Required for user/password and LDAP authentication backend
+```
+rundeck.storage.provider.[index].config.password=password
+```
+
+* **approleId**:  AppRole role ID. The role-id used for authentication
+```
+rundeck.storage.provider.[index].config.approleId=approleId
+```
+
+* **approleSecretId**:  AppRole secret ID. The secret-id used for authentication
+
+```
+rundeck.storage.provider.[index].config.approleSecretId=approleSecretId
+```
+
+* **approleAuthMount**:  AppRole mount name. The mount name of the AppRole authentication back end
+```
+rundeck.storage.provider.[index].config.approleAuthMount=approleAuthMount
+```
+
+* **githubToken**: GitHub token. The app-id used for authentication
+```
+rundeck.storage.provider.[index].config.githubToken=githubToken
+```
+
+
+* **keyStoreFile**: Key store file
+A Java keystore, containing a client certificate that's registered with Vault's TLS Certificate auth backend.
+
+```
+rundeck.storage.provider.[index].config.keyStoreFile=/path/keyfile
+```
+
+* **keyStoreFilePassword**: Key store password
+The password needed to access the keystore
+
+```
+rundeck.storage.provider.[index].config.keyStoreFilePassword=/path/keyStoreFilePassword
+```
+
+* **trustStoreFile**: Truststore file. A JKS truststore file, containing the Vault server's X509 certificate
+```
+rundeck.storage.provider.[index].config.trustStoreFile=/path/trustStoreFile
+```
+
+* **pemFile**: PEM file. The path of a file containing an X.509 certificate, in unencrypted PEM format with UTF-8 encoding.
+
+```
+rundeck.storage.provider.[index].config.pemFile=/path/pemFile
+```
+
+* **clientPemFile**: Client PEM file. The path of a file containing an X.509 certificate, in unencrypted PEM format with UTF-8 encoding.
+
+```
+rundeck.storage.provider.[index].config.clientPemFile=/path/clientPemFile
+```
+
+* **clientKeyPemFile**: Client key PEM file. The path of a file containing an RSA private key, in unencrypted PEM format with UTF-8 encoding.
+
+```
+rundeck.storage.provider.[index].config.clientKeyPemFile=/path/clientKeyPemFile
+```
+
+* **validateSsl**:  Enable/Disable SSL validation. Specifies whether SSL validation is to be performed
+```
+rundeck.storage.provider.[index].config.validateSsl=true/false
+```
+Default value: true
+
+* **maxRetries**:  Max retries. Maximum number of connection retries to Vault server
+```
+rundeck.storage.provider.[index].config.maxRetries=5
+```
+
+Default value: 5
+
+* **retryIntervalMilliseconds**:  Retry interval. Connection retry interval, ms
+```
+rundeck.storage.provider.[index].config.retryIntervalMilliseconds=1000
+```
+
+Default value: 1000
+
+* **openTimeout**:  Open timeout. Connection opening timeout, ms
+```
+rundeck.storage.provider.[index].config.openTimeout=5
+```
+
+Default value: 5
+
+* **readTimeout**:  Read timeout. Response read timeout, ms
+
+```
+rundeck.storage.provider.[index].config.readTimeout=20
+```
+
+Default value: 20
+
+* **secretBackend**:  Secret Backend. The secret backend to use in vault
+
+```
+rundeck.storage.provider.[index].config.secretBackend=secret
+```
+
+Default value: secret
+
+* **storageBehaviour**:  Storage Behaviour. Use the default Rundeck Behaviour for key storage (with rundeck headers) or use just the key/value behaviour from vault. Options are: rundeck, vault
+```
+rundeck.storage.provider.[index].config.storageBehaviour=vault/rundeck
+```
+Default value: rundeck
+
+* **engineVersion**: Vault Engine Version Key/Value Secret Engine Config
+
+```
+rundeck.storage.provider.[index].config.engineVersion=1/2
+```
+
+Default value: 1
+
+### Configuration Examples
+
+
+* **example basic settings**
 ```
 rundeck.storage.provider.1.type=vault-storage
 rundeck.storage.provider.1.path=keys
@@ -25,19 +179,45 @@ rundeck.storage.provider.1.config.address=$VAULT_URL
 rundeck.storage.provider.1.config.token=$VAULT_TOKEN
 ```
 
+* **existing vault storage**
+
 For existing vault storage, probably you will need to remove the default `keys` path added by default for rundeck.
 You can use these settings for an existing vault storage:
 
 ```
 rundeck.storage.provider.1.type=vault-storage
 rundeck.storage.provider.1.path=keys
-rundeck.storage.provider.1.removePathPrefix=true
 rundeck.storage.provider.1.config.prefix=someprefix
 rundeck.storage.provider.1.config.secretBackend=mybackend
 rundeck.storage.provider.1.config.address=$VAULT_URL
 rundeck.storage.provider.1.config.token=$VAULT_TOKEN
 rundeck.storage.provider.1.config.storageBehaviour=vault
 ```
+
+## Vault API versions
+
+Since version 1.3.1, this plugin can work with `kV Secrets Engine - Version 2`. 
+A new config variable was added in order to set the API version that you need to use:
+
+rundeck.storage.provider.1.config.engineVersion=1/2
+
+* engineVersion=1 will work with vault version 0.x
+* engineVersion=2 will work with vault version 1.x
+
+Example:
+
+```
+rundeck.storage.provider.1.type=vault-storage
+rundeck.storage.provider.1.path=keys
+rundeck.storage.provider.1.config.prefix=rundeck
+rundeck.storage.provider.1.config.secretBackend=secret
+rundeck.storage.provider.1.config.address=$VAULT_URL
+rundeck.storage.provider.1.config.token=$VAULT_TOKEN
+rundeck.storage.provider.1.config.engineVersion=2
+```
+
+By default, the value is set to v1 (1)
+
 
 ## Minimal version requirements
   * Java 1.8
@@ -48,7 +228,9 @@ rundeck.storage.provider.1.config.storageBehaviour=vault
   * [BetterCloud/vault-java-driver](https://github.com/BetterCloud/vault-java-driver) made this possible.
 
 ## TODO
-  * Integration tests
   * Automated auth token lease renewal
   * Storage converter plugin
+
+
+
 
