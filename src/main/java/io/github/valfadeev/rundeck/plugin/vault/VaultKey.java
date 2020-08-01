@@ -138,6 +138,7 @@ public class VaultKey extends KeyObject {
             builder.setContentLength(value.length());
 
             if(value.contains("-----BEGIN RSA PRIVATE KEY-----") || value.contains(System.getProperty("line.separator"))){
+                builder.setContentType(VaultStoragePlugin.PRIVATE_KEY_MIME_TYPE);
                 builder.setMeta(VaultStoragePlugin.RUNDECK_CONTENT_MASK, "content");
                 builder.setMeta(VaultStoragePlugin.RUNDECK_KEY_TYPE, "private");
             }
