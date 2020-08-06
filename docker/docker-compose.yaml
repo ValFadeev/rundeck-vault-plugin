@@ -22,11 +22,11 @@ services:
       args:
         IMAGE: ${RUNDECK_IMAGE}
     mem_limit: ${mem_limit}
-    command: -Dlogging.config=/home/rundeck/server/config/logback.groovy
+    #command: -Dlogging.config=/home/rundeck/server/config/logback.groovy
     links:
     - vault
     environment:
-    - RUNDECK_GRAILS_URL=http://localhost:4440
+    - RUNDECK_GRAILS_URL=http://localhost:4442
     - RUNDECK_DATABASE_DRIVER=com.mysql.jdbc.Driver
     - RUNDECK_DATABASE_USERNAME=rundeck
     - RUNDECK_DATABASE_PASSWORD=rundeck
@@ -40,12 +40,16 @@ services:
     - RUNDECK_STORAGE_PROVIDER_1_CONFIG_TOKEN=${VAULT_TOKEN}
     - RUNDECK_STORAGE_PROVIDER_1_CONFIG_BEHAVIOUR=vault
     - RUNDECK_STORAGE_PROVIDER_1_CONFIG_ENGINEVERSION=2
+    - RUNDECK_STORAGE_PROVIDER_1_CONFIG_MAXRETRIES=500
+    - RUNDECK_STORAGE_PROVIDER_1_CONFIG_RETRYINTERVAL=2
+    - RUNDECK_STORAGE_PROVIDER_1_CONFIG_OPENTIMEOUT=2500
+    - RUNDECK_STORAGE_PROVIDER_1_CONFIG_READTIMEOUT=2500
     ports:
-    - "4440:4440"
+    - "4442:4440"
   mysql:
     image: mysql:5.7
     ports:
-      - "33060:3306"
+      - "3306"
     environment:
       - MYSQL_ROOT_PASSWORD=root
       - MYSQL_DATABASE=rundeck
