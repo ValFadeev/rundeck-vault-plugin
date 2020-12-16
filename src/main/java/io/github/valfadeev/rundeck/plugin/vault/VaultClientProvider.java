@@ -42,6 +42,7 @@ class VaultClientProvider {
 
     protected VaultConfig getVaultConfig() throws ConfigurationException {
         final String vaultAddress = configuration.getProperty(VAULT_ADDRESS);
+        final String nameSpace = configuration.getProperty(VAULT_NAMESPACE);
         final Integer vaultOpenTimeout = Integer.parseInt(configuration.getProperty(VAULT_OPEN_TIMEOUT));
         final Integer vaultReadTimeout = Integer.parseInt(configuration.getProperty(VAULT_READ_TIMEOUT));
 
@@ -52,6 +53,15 @@ class VaultClientProvider {
                 .openTimeout(vaultOpenTimeout)
                 .readTimeout(vaultReadTimeout)
                 .sslConfig(sslConfig);
+
+        if(nameSpace != null){
+            try {
+                vaultConfig.nameSpace(nameSpace);
+            } catch (VaultException e) {
+                throw new ConfigurationException(
+                        String.format("Encountered error while building namespace configuration: %s", e.getMessage()));
+            }
+        }
 
         return vaultConfig;
     }
