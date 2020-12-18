@@ -4,6 +4,7 @@ class ConfigOptions {
     static final String VAULT_PREFIX = "prefix";
     static final String VAULT_ADDRESS = "address";
     static final String VAULT_TOKEN = "token";
+    static final String VAULT_NAMESPACE = "namespace";
     static final String VAULT_PEM_FILE = "pemFile";
     static final String VAULT_VERIFY_SSL = "validateSsl";
     static final String VAULT_MAX_RETRIES = "maxRetries";

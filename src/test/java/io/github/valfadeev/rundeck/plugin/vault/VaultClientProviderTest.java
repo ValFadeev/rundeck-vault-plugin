@@ -24,6 +24,7 @@ public class VaultClientProviderTest {
                 .getVaultConfig();
 
         assertThat(config.getAddress(), is("http://localhost:8200"));
+        assertThat(config.getNameSpace(), is("namespace1"));
         assertThat(config.getSslConfig().isVerify(), is(false));
         assertThat(config.getOpenTimeout(), is(5));
         assertThat(config.getReadTimeout(), is(20));
