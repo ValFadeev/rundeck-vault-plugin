@@ -22,6 +22,8 @@ jobs:
         run: chmod +x gradlew
       - name: Build with Gradle
         run: ./gradlew build
+      - name: Funtional Test
+        run: ./gradlew build && bash run-docker-vault-tests.sh
       - name: Get Release Version
         id: get_version
         run: VERSION=$(./gradlew currentVersion -q -Prelease.quiet) && echo ::set-output name=VERSION::$VERSION
