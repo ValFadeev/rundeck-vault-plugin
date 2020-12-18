@@ -1,5 +1,5 @@
 plugins {
-    id 'pl.allegro.tech.build.axion-release' version '1.7.1'
+    id 'pl.allegro.tech.build.axion-release' version '1.11.0'
 }
 ext.rundeckVersion='3.0.2-20180803'
 defaultTasks 'clean','build'
