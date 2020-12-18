@@ -38,6 +38,6 @@ echo "run_tests.sh finished with: $EC"
 
 
 # Stop and clean all
-docker-compose -f $DOCKER_COMPOSE_SPEC down --volumes --remove-orphans
+#docker-compose -f $DOCKER_COMPOSE_SPEC down --volumes --remove-orphans
 
 exit $EC

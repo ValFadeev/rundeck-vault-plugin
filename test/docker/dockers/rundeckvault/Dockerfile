@@ -4,7 +4,8 @@ USER root
 
 RUN apt-get update && \
     apt-get -y install apt-transport-https curl && \
-    apt-get -y install jq
+    apt-get -y install jq software-properties-common
+
 
 # add cli tool debian repo
 RUN echo "deb https://dl.bintray.com/rundeck/rundeck-deb /" | sudo tee -a /etc/apt/sources.list
@@ -16,12 +17,20 @@ RUN apt-get -y install rundeck-cli
 # RUNDECK
 ## RUNDECK setup env
 
+## Install Java
+RUN \
+ add-apt-repository -y ppa:openjdk-r/ppa  && \
+ apt-get update && \
+ apt-get install -y openjdk-8-jdk
+
 ENV USERNAME=rundeck \
     USER=rundeck \
     HOME=/home/rundeck \
     LOGNAME=$USERNAME \
     TERM=xterm-256color
 
+#RUN update-alternatives  --list java
+#RUN update-alternatives --set java /usr/lib/jvm/java-8-openjdk-amd64/jre/bin/java
 
 WORKDIR $HOME
 USER rundeck

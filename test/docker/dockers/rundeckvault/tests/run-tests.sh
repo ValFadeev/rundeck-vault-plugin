@@ -2,6 +2,10 @@
 #/ run all tests
 #/ usage: dir
 set -euo pipefail
+
+export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
+export PATH=/usr/lib/jvm/java-8-openjdk-amd64/jre/bin:$PATH
+
 IFS=$'\n\t'
 readonly ARGS=("$@")
 usage() {
