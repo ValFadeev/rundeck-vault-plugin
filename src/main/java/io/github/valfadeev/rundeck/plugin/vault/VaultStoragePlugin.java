@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import com.bettercloud.vault.Vault;
 import com.bettercloud.vault.VaultException;
 import com.bettercloud.vault.api.Logical;
 import com.bettercloud.vault.response.VaultResponse;
@@ -52,6 +53,8 @@ public class VaultStoragePlugin implements StoragePlugin, Configurable, Describa
     private Logical vault;
     //if is true, objects will be saved with rundeck default headers behaivour
     private boolean rundeckObject=true;
+    private VaultClientProvider clientProvider;
+    private Vault vaultClient;
 
 
     @Override
@@ -63,10 +66,8 @@ public class VaultStoragePlugin implements StoragePlugin, Configurable, Describa
     public void configure(Properties configuration) throws ConfigurationException {
         vaultPrefix = configuration.getProperty(VAULT_PREFIX);
         vaultSecretBackend = configuration.getProperty(VAULT_SECRET_BACKEND);
-
-        vault = new VaultClientProvider(configuration)
-                .getVaultClient()
-                .logical();
+        clientProvider = new VaultClientProvider(configuration);
+        loginVault(clientProvider);
 
         //check storage behaivour
         String storageBehaviour=configuration.getProperty(VAULT_STORAGE_BEHAVIOUR);
@@ -84,9 +85,31 @@ public class VaultStoragePlugin implements StoragePlugin, Configurable, Describa
         return key.endsWith("/");
     }
 
+    private void lookup(){
+        try {
+            vaultClient.auth().lookupSelf();
+        } catch (VaultException e) {
+            if(e.getHttpStatusCode() == 403){//try login again
+                loginVault(clientProvider);
+            } else {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private void loginVault(VaultClientProvider provider){
+        try {
+            vaultClient = provider.getVaultClient();
+            vault = vaultClient.logical();
+        } catch (ConfigurationException e) {
+            e.printStackTrace();
+        }
+    }
+
     private boolean isVaultDir(String key) {
 
         try{
+            lookup();
             if(vault.list(getVaultPath(key,vaultSecretBackend,vaultPrefix)).size() > 0){
                 return true;
             }else{
@@ -141,6 +164,7 @@ public class VaultStoragePlugin implements StoragePlugin, Configurable, Describa
         Map<String, Object> payload=object.saveResource(content,event,baoStream);
 
         try {
+            lookup();
             return vault.write(getVaultPath(object.getPath().getPath(),vaultSecretBackend,vaultPrefix), payload);
         } catch (VaultException e) {
             throw new StorageException(
@@ -181,6 +205,7 @@ public class VaultStoragePlugin implements StoragePlugin, Configurable, Describa
         List<String> response;
 
         try {
+            lookup();
             response = vault.list(getVaultPath(path.getPath(),vaultSecretBackend,vaultPrefix));
 
         } catch (VaultException e) {
@@ -257,6 +282,7 @@ public class VaultStoragePlugin implements StoragePlugin, Configurable, Describa
     @Override
     public boolean hasPath(Path path) {
         try {
+            lookup();
             if(vault.list(getVaultPath(path.getPath(),vaultSecretBackend,vaultPrefix)).size() > 0){
                 return true;
             }
@@ -297,6 +323,7 @@ public class VaultStoragePlugin implements StoragePlugin, Configurable, Describa
     @Override
     public boolean hasDirectory(Path path) {
         try {
+            lookup();
             List<String> list=vault.list(getVaultPath(path.getPath(),vaultSecretBackend,vaultPrefix));
 
             if(list.size() > 0){
@@ -408,7 +435,7 @@ public class VaultStoragePlugin implements StoragePlugin, Configurable, Describa
     }
 
     public KeyObject getVaultObject(Path path){
-
+        lookup();
         KeyObject value= KeyObjectBuilder.builder()
                                 .path(path)
                                 .vault(vault)
