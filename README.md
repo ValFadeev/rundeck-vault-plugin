@@ -169,7 +169,7 @@ Default value: 1
 ### Configuration Examples
 
 
-* **example basic settings**
+#### **example basic settings**
 ```
 rundeck.storage.provider.1.type=vault-storage
 rundeck.storage.provider.1.path=keys
@@ -179,7 +179,7 @@ rundeck.storage.provider.1.config.address=$VAULT_URL
 rundeck.storage.provider.1.config.token=$VAULT_TOKEN
 ```
 
-* **existing vault storage**
+#### **existing vault storage**
 
 For existing vault storage, probably you will need to remove the default `keys` path added by default for rundeck.
 You can use these settings for an existing vault storage:
@@ -193,6 +193,44 @@ rundeck.storage.provider.1.config.address=$VAULT_URL
 rundeck.storage.provider.1.config.token=$VAULT_TOKEN
 rundeck.storage.provider.1.config.storageBehaviour=vault
 ```
+
+#### **Using APPROLE authentication**
+
+You can use these settings for an existing vault storage:
+
+```
+rundeck.storage.provider.1.type=vault-storage
+rundeck.storage.provider.1.path=keys
+rundeck.storage.provider.1.config.prefix=app
+rundeck.storage.provider.1.config.secretBackend=secret
+rundeck.storage.provider.1.config.address=$VAULT_URL
+rundeck.storage.provider.1.config.engineVersion=2
+rundeck.storage.provider.1.config.storageBehaviour=vault
+
+#auth
+rundeck.storage.provider.1.config.authBackend=approle
+rundeck.storage.provider.1.config.approleAuthMount=approle
+rundeck.storage.provider.1.config.approleId=$VAULT_APPROLE_ID
+rundeck.storage.provider.1.config.approleSecretId=$VAULT_APPROLE_SECRET_ID
+
+#timeouts
+rundeck.storage.provider.1.config.maxRetries=500
+rundeck.storage.provider.1.config.retryIntervalMilliseconds=2
+rundeck.storage.provider.1.config.openTimeout=2500
+rundeck.storage.provider.1.config.readTimeout=2500
+```
+
+**Enabling APPROLE Vault using API**
+
+```
+curl --header "X-Vault-Token: $TOKEN" --request POST --data '{"type": "approle"}' http://localhost:8200/v1/sys/auth/approle
+curl --header "X-Vault-Token: $TOKEN" --request POST --data '{"policies": "rundeck", "token_ttl": "2m", "token_max_ttl": "2m"}' http://localhost:8200/v1/auth/approle/role/rundeck
+# get $VAULT_APPROLE_ID
+curl --header "X-Vault-Token: $TOKEN" http://localhost:8200/v1/auth/approle/role/rundeck/role-id | jq
+# get $VAULT_APPROLE_SECRET_ID
+curl --header "X-Vault-Token: $TOKEN" --request POST http://localhost:8200/v1/auth/approle/role/rundeck/secret-id | jq
+```
+
 
 ## Vault API versions
 
