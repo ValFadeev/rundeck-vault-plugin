@@ -1,9 +1,11 @@
 # Rundeck Vault Storage Plugin
 
 ## Purpose
-This is a [Storage Backend](http://rundeck.org/docs/plugins-user-guide/storage-plugins.html) plugin for storing Key Store data in [Vault](https://www.vaultproject.io/).
+This is a [Storage Backend](https://docs.rundeck.com/docs/administration/security/key-storage.html#key-data-storage-converter) plugin for storing Key Store data in [Vault](https://www.vaultproject.io/).
 
-## Installation
+This plugin is bundled with Rundeck Enterprise.  It is also available to Community users following the install steps below.
+
+## Community Installation
   * Download and start [Rundeck](http://rundeck.org/downloads.html). It will automatically create the necessary directories.
   * Clone this repository. Build using `gradle` wrapper:
     ```
