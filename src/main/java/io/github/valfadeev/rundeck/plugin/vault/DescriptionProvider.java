@@ -12,8 +12,8 @@ class DescriptionProvider {
     static Description getDescription() {
         return DescriptionBuilder.builder()
                 .name("vault-storage")
-                .description("Stores data in Vault")
-                .title("Vault storage")
+                .description("Use Hashicorp Vault secrets as backend for Rundeck Key Storage")
+                .title("Hashicorp Vault - Key Storage Plugin")
                 .property(PropertyBuilder.builder()
                         .string(VAULT_PREFIX)
                         .title("Vault prefix")
