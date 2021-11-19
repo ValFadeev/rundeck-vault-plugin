@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 import com.bettercloud.vault.Vault;
 import com.bettercloud.vault.VaultException;
 import com.bettercloud.vault.api.Logical;
+import com.bettercloud.vault.response.LookupResponse;
 import com.bettercloud.vault.response.VaultResponse;
 import com.dtolabs.rundeck.core.plugins.Plugin;
 import com.dtolabs.rundeck.core.plugins.configuration.Configurable;
@@ -31,7 +32,6 @@ import static io.github.valfadeev.rundeck.plugin.vault.ConfigOptions.*;
  * @author ValFadeev
  * @since 2017-09-18
  */
-
 @Plugin(name = "vault-storage", service = ServiceNameConstants.Storage)
 public class VaultStoragePlugin implements StoragePlugin, Configurable, Describable {
 
@@ -47,10 +47,12 @@ public class VaultStoragePlugin implements StoragePlugin, Configurable, Describa
     protected static final String PUBLIC_KEY_MIME_TYPE = "application/pgp-keys";
     protected static final String PASSWORD_MIME_TYPE = "application/x-rundeck-data-password";
 
+    public static final int MAX_GUARANTEED_VALIDITY_SECONDS = 60;
 
     private String vaultPrefix;
     private String vaultSecretBackend;
     private Logical vault;
+    private int guaranteedTokenValidity;
     //if is true, objects will be saved with rundeck default headers behaivour
     private boolean rundeckObject=true;
     private VaultClientProvider clientProvider;
@@ -66,7 +68,7 @@ public class VaultStoragePlugin implements StoragePlugin, Configurable, Describa
     public void configure(Properties configuration) throws ConfigurationException {
         vaultPrefix = configuration.getProperty(VAULT_PREFIX);
         vaultSecretBackend = configuration.getProperty(VAULT_SECRET_BACKEND);
-        clientProvider = new VaultClientProvider(configuration);
+        clientProvider = getVaultClientProvider(configuration);
         loginVault(clientProvider);
 
         //check storage behaivour
@@ -74,6 +76,22 @@ public class VaultStoragePlugin implements StoragePlugin, Configurable, Describa
         if(storageBehaviour!=null && storageBehaviour.equals("vault")){
             rundeckObject=false;
         }
+
+        guaranteedTokenValidity = calculateGuaranteedTokenValidity(configuration);
+    }
+
+    protected VaultClientProvider getVaultClientProvider(Properties configuration) {
+        return new VaultClientProvider(configuration);
+    }
+
+    protected int calculateGuaranteedTokenValidity(Properties configuration) {
+        return Integer.min(
+                Integer.parseInt(configuration.getProperty(VAULT_MAX_RETRIES))
+                        * (Integer.parseInt(configuration.getProperty(VAULT_READ_TIMEOUT))
+                            + Integer.parseInt(configuration.getProperty(VAULT_OPEN_TIMEOUT))
+                            + Integer.parseInt(configuration.getProperty(VAULT_RETRY_INTERVAL_MILLISECONDS)) / 1000),
+                MAX_GUARANTEED_VALIDITY_SECONDS
+        );
     }
 
     public static String getVaultPath(String rawPath, String vaultSecretBackend, String vaultPrefix) {
@@ -85,9 +103,11 @@ public class VaultStoragePlugin implements StoragePlugin, Configurable, Describa
         return key.endsWith("/");
     }
 
-    private void lookup(){
+    protected void lookup(){
         try {
-            vaultClient.auth().lookupSelf();
+            if (vaultClient.auth().lookupSelf().getTTL() <= guaranteedTokenValidity) {
+                loginVault(clientProvider);
+            }
         } catch (VaultException e) {
             if(e.getHttpStatusCode() == 403){//try login again
                 loginVault(clientProvider);

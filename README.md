@@ -131,14 +131,14 @@ rundeck.storage.provider.[index].config.retryIntervalMilliseconds=1000
 
 Default value: 1000
 
-* **openTimeout**:  Open timeout. Connection opening timeout, ms
+* **openTimeout**:  Open timeout. Connection opening timeout, in seconds
 ```
 rundeck.storage.provider.[index].config.openTimeout=5
 ```
 
 Default value: 5
 
-* **readTimeout**:  Read timeout. Response read timeout, ms
+* **readTimeout**:  Read timeout. Response read timeout, in seconds
 
 ```
 rundeck.storage.provider.[index].config.readTimeout=20
