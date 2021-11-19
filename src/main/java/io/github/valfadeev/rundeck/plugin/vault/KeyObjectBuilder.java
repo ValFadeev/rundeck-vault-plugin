@@ -51,6 +51,11 @@ public class KeyObjectBuilder {
                 object = new VaultKey(response,path);
             }
 
+            if(response.getRestResponse().getStatus()!=200){
+                object.error = true;
+                return object;
+            }
+
         } catch (VaultException e) {
             object = new RundeckKey(path);
             object.setErrorMessage(e.getMessage());
