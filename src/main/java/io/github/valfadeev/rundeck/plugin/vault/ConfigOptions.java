@@ -17,6 +17,7 @@ class ConfigOptions {
     static final String VAULT_TRUST_STORE_FILE = "trustStoreFile";
     static final String VAULT_CLIENT_PEM_FILE = "clientPemFile";
     static final String VAULT_CLIENT_KEY_PEM_FILE = "clientKeyPemFile";
+    static final String VAULT_USERPASS_AUTH_MOUNT = "userpassAuthMount";
     static final String VAULT_USERNAME = "username";
     static final String VAULT_PASSWORD = "password";
     static final String VAULT_GITHUB_TOKEN = "githubToken";

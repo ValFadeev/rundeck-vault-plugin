@@ -208,6 +208,7 @@ class VaultClientProvider {
                 break;
 
             case USERPASS:
+                final String vaultUserpassAuthMount = configuration.getProperty(VAULT_USERPASS_AUTH_MOUNT);
                 final String vaultUsername = configuration.getProperty(VAULT_USERNAME);
                 final String vaultPassword = configuration.getProperty(VAULT_PASSWORD);
                 if (vaultUsername == null || vaultPassword == null) {
@@ -222,7 +223,7 @@ class VaultClientProvider {
 
                 try {
                     authToken = vaultAuth
-                            .loginByUserPass(vaultUsername, vaultPassword)
+                            .loginByUserPass(vaultUsername, vaultPassword, vaultUserpassAuthMount)
                             .getAuthClientToken();
 
                 } catch (VaultException e) {
