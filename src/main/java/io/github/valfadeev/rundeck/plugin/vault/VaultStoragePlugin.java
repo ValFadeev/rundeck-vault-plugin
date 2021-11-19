@@ -130,7 +130,7 @@ public class VaultStoragePlugin implements StoragePlugin, Configurable, Describa
 
         try{
             lookup();
-            if(vault.list(getVaultPath(key,vaultSecretBackend,vaultPrefix)).size() > 0){
+            if(vault.list(getVaultPath(key,vaultSecretBackend,vaultPrefix)).getListData().size() > 0){
                 return true;
             }else{
                 if(!rundeckObject) {
@@ -226,7 +226,7 @@ public class VaultStoragePlugin implements StoragePlugin, Configurable, Describa
 
         try {
             lookup();
-            response = vault.list(getVaultPath(path.getPath(),vaultSecretBackend,vaultPrefix));
+            response = vault.list(getVaultPath(path.getPath(),vaultSecretBackend,vaultPrefix)).getListData();
 
         } catch (VaultException e) {
             throw StorageException.listException(
@@ -303,7 +303,7 @@ public class VaultStoragePlugin implements StoragePlugin, Configurable, Describa
     public boolean hasPath(Path path) {
         try {
             lookup();
-            if(vault.list(getVaultPath(path.getPath(),vaultSecretBackend,vaultPrefix)).size() > 0){
+            if(vault.list(getVaultPath(path.getPath(),vaultSecretBackend,vaultPrefix)).getListData().size() > 0){
                 return true;
             }
 
@@ -344,7 +344,7 @@ public class VaultStoragePlugin implements StoragePlugin, Configurable, Describa
     public boolean hasDirectory(Path path) {
         try {
             lookup();
-            List<String> list=vault.list(getVaultPath(path.getPath(),vaultSecretBackend,vaultPrefix));
+            List<String> list=vault.list(getVaultPath(path.getPath(),vaultSecretBackend,vaultPrefix)).getListData();
 
             if(list.size() > 0){
                 return list.size() > 0;

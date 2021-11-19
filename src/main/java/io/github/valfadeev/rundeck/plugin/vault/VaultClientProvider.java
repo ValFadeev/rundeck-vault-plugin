@@ -129,6 +129,7 @@ class VaultClientProvider {
 
     private String getVaultAuthToken() throws ConfigurationException {
         final String vaultAuthBackend = configuration.getProperty(VAULT_AUTH_BACKEND);
+        final String vaultAuthNameSpace = configuration.getProperty(VAULT_AUTH_NAMESPACE);
 
         final String authToken;
         final String msg = "Must specify %s when auth backend is %s";
