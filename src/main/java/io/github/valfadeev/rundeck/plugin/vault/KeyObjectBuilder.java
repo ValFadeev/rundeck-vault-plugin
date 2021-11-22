@@ -53,7 +53,6 @@ public class KeyObjectBuilder {
 
             if(response.getRestResponse().getStatus()!=200){
                 object.error = true;
-                return object;
             }
 
         } catch (VaultException e) {
@@ -92,6 +91,11 @@ public class KeyObjectBuilder {
         Path parentPath = PathUtil.parentPath(path);
         try {
             response = vault.read(VaultStoragePlugin.getVaultPath(parentPath.getPath(),vaultSecretBackend,vaultPrefix));
+
+            if(response.getRestResponse().getStatus()!=200){
+                return null;
+            }
+
             parentObject=new VaultKey(response, parentPath);
         } catch (VaultException e) {
 
