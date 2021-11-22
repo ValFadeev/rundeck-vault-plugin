@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 import com.bettercloud.vault.Vault;
 import com.bettercloud.vault.VaultException;
 import com.bettercloud.vault.api.Logical;
+import com.bettercloud.vault.response.LogicalResponse;
 import com.bettercloud.vault.response.LookupResponse;
 import com.bettercloud.vault.response.VaultResponse;
 import com.dtolabs.rundeck.core.plugins.Plugin;
@@ -130,7 +131,8 @@ public class VaultStoragePlugin implements StoragePlugin, Configurable, Describa
 
         try{
             lookup();
-            if(vault.list(getVaultPath(key,vaultSecretBackend,vaultPrefix)).getListData().size() > 0){
+            List<String> list = getVaultList(key);
+            if(list.size() > 0){
                 return true;
             }else{
                 if(!rundeckObject) {
@@ -226,7 +228,7 @@ public class VaultStoragePlugin implements StoragePlugin, Configurable, Describa
 
         try {
             lookup();
-            response = vault.list(getVaultPath(path.getPath(),vaultSecretBackend,vaultPrefix)).getListData();
+            response = getVaultList(path);
 
         } catch (VaultException e) {
             throw StorageException.listException(
@@ -303,7 +305,9 @@ public class VaultStoragePlugin implements StoragePlugin, Configurable, Describa
     public boolean hasPath(Path path) {
         try {
             lookup();
-            if(vault.list(getVaultPath(path.getPath(),vaultSecretBackend,vaultPrefix)).getListData().size() > 0){
+
+            List<String> list = getVaultList(path);
+            if(list.size() > 0){
                 return true;
             }
 
@@ -344,7 +348,8 @@ public class VaultStoragePlugin implements StoragePlugin, Configurable, Describa
     public boolean hasDirectory(Path path) {
         try {
             lookup();
-            List<String> list=vault.list(getVaultPath(path.getPath(),vaultSecretBackend,vaultPrefix)).getListData();
+
+            List<String> list=getVaultList(path);
 
             if(list.size() > 0){
                 return list.size() > 0;
@@ -467,5 +472,23 @@ public class VaultStoragePlugin implements StoragePlugin, Configurable, Describa
     }
 
 
+    private List<String> getVaultList(Path path) throws VaultException {
+        return getVaultList(path.getPath());
+
+    }
+
+    private List<String> getVaultList(String path) throws VaultException {
+        LogicalResponse response = vault.list(getVaultPath(path,vaultSecretBackend,vaultPrefix));
+        if (response.getRestResponse().getStatus()!=200){
+            String body = new String(response.getRestResponse().getBody());
+            throw StorageException.listException(
+                    PathUtil.asPath(path),
+                    String.format("Encountered error while reading data from Vault %s",
+                            body));
+        }
+
+        return response.getListData();
+
+    }
 
 }
