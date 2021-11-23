@@ -74,6 +74,17 @@ rundeck.storage.provider.[index].config.githubToken=githubToken
 ```
 
 
+* **namespace**: Namespace. Vault namespace (Optional)
+```
+rundeck.storage.provider.[index].config.namespace=password
+```
+
+* **authNamespace**: Authentication Namespace. Vault authentication namespace used for authentication(Optional)
+```
+rundeck.storage.provider.[index].config.authNamespace=password
+```
+
+
 * **keyStoreFile**: Key store file
 A Java keystore, containing a client certificate that's registered with Vault's TLS Certificate auth backend.
 
