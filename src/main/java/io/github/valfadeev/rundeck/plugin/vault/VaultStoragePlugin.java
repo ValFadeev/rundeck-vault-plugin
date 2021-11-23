@@ -479,7 +479,7 @@ public class VaultStoragePlugin implements StoragePlugin, Configurable, Describa
 
     private List<String> getVaultList(String path) throws VaultException {
         LogicalResponse response = vault.list(getVaultPath(path,vaultSecretBackend,vaultPrefix));
-        if (response.getRestResponse().getStatus()!=200){
+        if (response.getRestResponse().getStatus()==403){
             String body = new String(response.getRestResponse().getBody());
             throw StorageException.listException(
                     PathUtil.asPath(path),
