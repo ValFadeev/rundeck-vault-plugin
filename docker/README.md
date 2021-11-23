@@ -6,11 +6,36 @@ This is a docker compose environment wih rundeck, mysql and vault
 
 * Copy vault plugin to `docker/rundeck/plugins`
 
-### How to use it
+### Simple example with Vault OSS
 
 * Build
 
 ```
+make build
+```
+
+* Start
+
+```
+make start
+```
+
+
+* Stop
+
+```
+make clean
+```
+
+
+### Example with Vault Enterprise using approle
+
+* Build
+
+```
+export DOCKER_COMPOSE_SPEC=docker-compose-approle.yaml 
+export ENV_FILE=.env-enterprise 
+
 make build
 ```
 
