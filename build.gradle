@@ -1,11 +1,15 @@
 plugins {
     id 'pl.allegro.tech.build.axion-release' version '1.11.0'
+    id 'groovy'
+
 }
 ext.rundeckVersion='3.0.2-20180803'
 defaultTasks 'clean','build'
 apply plugin: 'java'
 apply plugin: 'idea'
 apply plugin: 'pl.allegro.tech.build.axion-release'
+apply plugin: 'groovy'
+
 sourceCompatibility = 1.8
 ext.rundeckPluginVersion= '1.2'
 
@@ -14,6 +18,7 @@ ext.rundeckPluginVersion= '1.2'
  * plugins.
  */
 ext.pluginClassNames='io.github.valfadeev.rundeck.plugin.vault.VaultStoragePlugin'
+
 
 scmVersion {
     ignoreUncommittedChanges = false
@@ -51,7 +56,7 @@ dependencies {
     // add any third-party jar dependencies you wish to include in the plugin
     // using the `pluginLibs` configuration as shown here:
 
-    pluginLibs group: 'com.bettercloud', name: 'vault-java-driver', version: '5.0.0', ext: 'jar'
+    pluginLibs group: 'com.bettercloud', name: 'vault-java-driver', version: '5.1.0', ext: 'jar'
 
 
     //the compile dependency won't add the rundeck-core jar to the plugin contents
@@ -64,7 +69,11 @@ dependencies {
             [group: 'net.bytebuddy', name: 'byte-buddy', version: '1.12.1'],
             [group: 'net.bytebuddy', name: 'byte-buddy-agent', version: '1.12.1'],
             [group: 'org.objenesis', name: 'objenesis', version: '3.2']
+
     )
+    testCompile "org.codehaus.groovy:groovy-all:2.4.15"
+    testCompile "org.spockframework:spock-core:1.0-groovy-2.4"
+    testCompile "cglib:cglib-nodep:2.2.2"
 
 }
 
