@@ -190,8 +190,10 @@ it_check_multiple_key_value_job() {
     bash -c "rd run -i $JOBID -p $RUNDECK_PROJECT"
 
     cmdout=($(bash -c "rd executions follow  -e 2 | grep -v '^#' "))
-    expout=($(curl -s -H "X-Vault-Token: $VAULT_TOKEN"  http://vault:8200/v1/rundeckbackend/app/keys/multiples | jq .data.password))
+    expout=($(curl -s -H "X-Vault-Token: $VAULT_TOKEN"  http://vault:8200/v1/secret/data/rundeck/keys/multiples | jq .data.data.password))
+    echo "${expout}"
     echo "${cmdout[@]}"
+
     if ! test ${#expout[*]} = ${#cmdout[*]}
     then
         echo "FAIL: command output did not contain ${#expout[*]} lines. Contained ${#cmdout[*]}: ${cmdout[*]}"

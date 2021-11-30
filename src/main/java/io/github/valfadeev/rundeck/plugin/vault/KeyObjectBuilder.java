@@ -51,6 +51,10 @@ public class KeyObjectBuilder {
                 object = new VaultKey(response,path);
             }
 
+            if(response.getRestResponse().getStatus()!=200){
+                object.error = true;
+            }
+
         } catch (VaultException e) {
             object = new RundeckKey(path);
             object.setErrorMessage(e.getMessage());
@@ -87,6 +91,11 @@ public class KeyObjectBuilder {
         Path parentPath = PathUtil.parentPath(path);
         try {
             response = vault.read(VaultStoragePlugin.getVaultPath(parentPath.getPath(),vaultSecretBackend,vaultPrefix));
+
+            if(response.getRestResponse().getStatus()!=200){
+                return null;
+            }
+
             parentObject=new VaultKey(response, parentPath);
         } catch (VaultException e) {
 
