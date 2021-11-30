@@ -81,7 +81,7 @@ rundeck.storage.provider.[index].config.namespace=namespace
 
 * **authNamespace**: Authentication Namespace. Vault authentication namespace used for authentication(Optional)
 ```
-rundeck.storage.provider.[index].config.authNamespace=password
+rundeck.storage.provider.[index].config.authNamespace=namespace
 ```
 
 
