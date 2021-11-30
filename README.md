@@ -76,7 +76,7 @@ rundeck.storage.provider.[index].config.githubToken=githubToken
 
 * **namespace**: Namespace. Vault namespace (Optional)
 ```
-rundeck.storage.provider.[index].config.namespace=password
+rundeck.storage.provider.[index].config.namespace=namespace
 ```
 
 * **authNamespace**: Authentication Namespace. Vault authentication namespace used for authentication(Optional)
