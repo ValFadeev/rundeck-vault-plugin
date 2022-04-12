@@ -18,6 +18,7 @@ import com.dtolabs.rundeck.core.plugins.configuration.Describable;
 import com.dtolabs.rundeck.core.plugins.configuration.Description;
 import com.dtolabs.rundeck.core.storage.ResourceMeta;
 import com.dtolabs.rundeck.plugins.ServiceNameConstants;
+import com.dtolabs.rundeck.plugins.descriptions.PluginProperty;
 import com.dtolabs.rundeck.plugins.storage.StoragePlugin;
 import org.rundeck.storage.api.Path;
 import org.rundeck.storage.api.PathUtil;
@@ -34,7 +35,7 @@ import static io.github.valfadeev.rundeck.plugin.vault.ConfigOptions.*;
  * @since 2017-09-18
  */
 @Plugin(name = "vault-storage", service = ServiceNameConstants.Storage)
-public class VaultStoragePlugin implements StoragePlugin, Configurable, Describable {
+public class VaultStoragePlugin implements StoragePlugin {
 
     java.util.logging.Logger log = java.util.logging.Logger.getLogger("vault-storage");
 
@@ -50,8 +51,6 @@ public class VaultStoragePlugin implements StoragePlugin, Configurable, Describa
 
     public static final int MAX_GUARANTEED_VALIDITY_SECONDS = 60;
 
-    private String vaultPrefix;
-    private String vaultSecretBackend;
     private Logical vault;
     private int guaranteedTokenValidity;
     //if is true, objects will be saved with rundeck default headers behaivour
@@ -59,26 +58,35 @@ public class VaultStoragePlugin implements StoragePlugin, Configurable, Describa
     private VaultClientProvider clientProvider;
     private Vault vaultClient;
 
+    @PluginProperty(title = "vaultPrefix", description = "username for the account to authenticate to")
+    String vaultPrefix;
 
-    @Override
-    public Description getDescription() {
-        return DescriptionProvider.getDescription();
-    }
+    @PluginProperty(title = "vaultSecretBackend", description = "password for the account to authenticate to")
+    String vaultSecretBackend;
 
-    @Override
-    public void configure(Properties configuration) throws ConfigurationException {
-        vaultPrefix = configuration.getProperty(VAULT_PREFIX);
-        vaultSecretBackend = configuration.getProperty(VAULT_SECRET_BACKEND);
-        clientProvider = getVaultClientProvider(configuration);
-        loginVault(clientProvider);
+    @PluginProperty(title = "storageBehaviour", description = "storageBehaviour for the account to authenticate to")
+    String storageBehaviour;
 
-        //check storage behaivour
-        String storageBehaviour=configuration.getProperty(VAULT_STORAGE_BEHAVIOUR);
-        if(storageBehaviour!=null && storageBehaviour.equals("vault")){
-            rundeckObject=false;
+    private Vault getVaultClient() throws ConfigurationException {
+        //clone former properties configuration passes to configure method
+        if(vaultClient == null) {
+            Properties properties = new Properties();
+            properties.setProperty(VAULT_PREFIX, vaultPrefix);
+            properties.setProperty(VAULT_SECRET_BACKEND, vaultSecretBackend);
+            properties.setProperty(VAULT_STORAGE_BEHAVIOUR, storageBehaviour);
+
+            //set member variables on object on entry, lookup -> getVaultClient()
+            if (storageBehaviour != null && storageBehaviour.equals("vault")) {
+                rundeckObject = false;
+            }
+
+            guaranteedTokenValidity = calculateGuaranteedTokenValidity(properties);
+
+            clientProvider = getVaultClientProvider(properties);
+            vaultClient = clientProvider.getVaultClient();
         }
+            return vaultClient;
 
-        guaranteedTokenValidity = calculateGuaranteedTokenValidity(configuration);
     }
 
     protected VaultClientProvider getVaultClientProvider(Properties configuration) {
@@ -106,7 +114,7 @@ public class VaultStoragePlugin implements StoragePlugin, Configurable, Describa
 
     protected void lookup(){
         try {
-            if (vaultClient.auth().lookupSelf().getTTL() <= guaranteedTokenValidity) {
+            if (getVaultClient().auth().lookupSelf().getTTL() <= guaranteedTokenValidity) {
                 loginVault(clientProvider);
             }
         } catch (VaultException e) {
@@ -115,13 +123,14 @@ public class VaultStoragePlugin implements StoragePlugin, Configurable, Describa
             } else {
                 e.printStackTrace();
             }
+        } catch (ConfigurationException e) {
+            e.printStackTrace();
         }
     }
 
     private void loginVault(VaultClientProvider provider){
         try {
-            vaultClient = provider.getVaultClient();
-            vault = vaultClient.logical();
+            vault = getVaultClient().logical();
         } catch (ConfigurationException e) {
             e.printStackTrace();
         }
