@@ -65,15 +65,115 @@ public class VaultStoragePlugin implements StoragePlugin {
     @PluginProperty(title = "vaultSecretBackend", description = "password for the account to authenticate to")
     String vaultSecretBackend;
 
+    @PluginProperty(title = "Vault address", description = "Address of the Vault server", defaultValue = "https://localhost:8200")
+    String address;
+
+    @PluginProperty(title = "Vault token", description = "Vault authentication token. " + "Required, if authentication backend is 'token'")
+    String token;
+
+    @PluginProperty(title = "Vault auth backend", description = "Authentication backend")
+    String authBackend;
+
+    @PluginProperty(title = "Key store file", description = "A Java keystore, containing a client certificate " + "that's registered with Vault's TLS Certificate auth backend.")
+    String keyStoreFile;
+
+    @PluginProperty(title = "Key store password", description = "The password needed to access the keystore", defaultValue = "")
+    String keyStoreFilePassword;
+
+    @PluginProperty(title = "Truststore file", description = "A JKS truststore file, containing the Vault " + "server's X509 certificate")
+    String trustStoreFile;
+
+    @PluginProperty(title = "PEM file", description = "The path of a file containing an X.509 certificate, " + "in unencrypted PEM format with UTF-8 encoding.")
+    String pemFile;
+
+    @PluginProperty(title = "Client PEM file", description = "The path of a file containing an X.509 certificate, " + "in unencrypted PEM format with UTF-8 encoding.")
+    String clientPemFile;
+
+    @PluginProperty(title = "Client Key PEM file", description = "The path of a file containing an RSA private key, " + "in unencrypted PEM format with UTF-8 encoding.")
+    String clientKeyPemFile;
+
+    @PluginProperty(title = "Disable SSL validation", description = "Specifies whether SSL validation is to be performed", defaultValue = "true", required = true)
+    String validateSsl;
+
+    @PluginProperty(title = "Userpass Mount name", description = "The mount name of the Userpass authentication back end", defaultValue = "userpass")
+    String userpassAuthMount;
+
+    @PluginProperty(title = "User name", description = "Required for user/password and LDAP authentication backend")
+    String username;
+
+    @PluginProperty(title = "Password", description = "Required for user/password and LDAP authentication backend")
+    String password;
+
+    @PluginProperty(title = "AppRole role ID", description = "The role-id used for authentication")
+    String approleId;
+
+    @PluginProperty(title = "AppRole secret ID", description = "The secret-id used for authentication")
+    String approleSecretId;
+
+    @PluginProperty(title = "AppRole mount name", description = "The mount name of the AppRole authentication back end")
+    String approleAuthMount;
+
+    @PluginProperty(title = "GitHub token", description = "The app-id used for authentication")
+    String githubToken;
+
+    @PluginProperty(title = "Max retries", description = "Maximum number of connection " + "retries to Vault server", defaultValue = "5")
+    String maxRetries;
+
+    @PluginProperty(title = "Retry interval", description = "Connection retry interval, in ms", defaultValue = "1000")
+    String retryIntervalMilliseconds;
+
+    @PluginProperty(title = "Open timeout", description = "Connection opening timeout, in seconds", defaultValue = "5")
+    String openTimeout;
+
+    @PluginProperty(title = "Read timeout", description = "Response read timeout, in seconds", defaultValue = "20")
+    String readTimeout;
+
+    @PluginProperty(title = "Secret Backend", description = "The secret backend to use in vault", defaultValue = "secret")
+    String secretBackend;
+
+    @PluginProperty(title = "Namespace", description = "The namespace to access and save the secrets")
+    String namespace;
+
     @PluginProperty(title = "storageBehaviour", description = "storageBehaviour for the account to authenticate to")
     String storageBehaviour;
+
+    @PluginProperty(title = "Vault Engine Version", description = "Key/Value Secret Engine Config", defaultValue = "1")
+    String engineVersion;
+
+    @PluginProperty(title = "Authentication Namespace", description = "The namespace for authentication")
+    String authNamespace;
 
     protected Vault getVaultClient() throws ConfigurationException {
         //clone former properties configuration passes to configure method
         if(vaultClient == null) {
             properties.setProperty(VAULT_PREFIX, vaultPrefix);
             properties.setProperty(VAULT_SECRET_BACKEND, vaultSecretBackend);
+            properties.setProperty(VAULT_ADDRESS, address);
+            properties.setProperty(VAULT_TOKEN, token);
+            properties.setProperty(VAULT_AUTH_BACKEND, authBackend);
+            properties.setProperty(VAULT_KEY_STORE_FILE, keyStoreFile);
+            properties.setProperty(VAULT_KEY_STORE_FILE_PASSWORD, keyStoreFilePassword);
+            properties.setProperty(VAULT_TRUST_STORE_FILE, trustStoreFile);
+            properties.setProperty(VAULT_PEM_FILE, pemFile);
+            properties.setProperty(VAULT_CLIENT_PEM_FILE, clientPemFile);
+            properties.setProperty(VAULT_CLIENT_KEY_PEM_FILE, clientKeyPemFile);
+            properties.setProperty(VAULT_VERIFY_SSL, validateSsl);
+            properties.setProperty(VAULT_USERPASS_AUTH_MOUNT, userpassAuthMount);
+            properties.setProperty(VAULT_USERNAME, username);
+            properties.setProperty(VAULT_PASSWORD, password);
+            properties.setProperty(VAULT_APPROLE_ID, approleId);
+            properties.setProperty(VAULT_APPROLE_SECRET_ID, approleSecretId);
+            properties.setProperty(VAULT_APPROLE_AUTH_MOUNT, approleAuthMount);
+            properties.setProperty(VAULT_GITHUB_TOKEN, githubToken);
+            properties.setProperty(VAULT_MAX_RETRIES, maxRetries);
+            properties.setProperty(VAULT_RETRY_INTERVAL_MILLISECONDS, retryIntervalMilliseconds);
+            properties.setProperty(VAULT_OPEN_TIMEOUT, openTimeout);
+            properties.setProperty(VAULT_READ_TIMEOUT, readTimeout);
+            properties.setProperty(VAULT_SECRET_BACKEND, secretBackend);
+            properties.setProperty(VAULT_NAMESPACE, namespace);
             properties.setProperty(VAULT_STORAGE_BEHAVIOUR, storageBehaviour);
+            properties.setProperty(VAULT_ENGINE_VERSION, engineVersion);
+            properties.setProperty(VAULT_AUTH_NAMESPACE, authNamespace);
 
             //set member variables on object on entry, lookup -> getVaultClient()
             if (storageBehaviour != null && storageBehaviour.equals("vault")) {
