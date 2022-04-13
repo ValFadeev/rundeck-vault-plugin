@@ -57,6 +57,7 @@ public class VaultStoragePlugin implements StoragePlugin {
     private boolean rundeckObject=true;
     private VaultClientProvider clientProvider;
     private Vault vaultClient;
+    Properties properties = new Properties();
 
     @PluginProperty(title = "vaultPrefix", description = "username for the account to authenticate to")
     String vaultPrefix;
@@ -67,10 +68,9 @@ public class VaultStoragePlugin implements StoragePlugin {
     @PluginProperty(title = "storageBehaviour", description = "storageBehaviour for the account to authenticate to")
     String storageBehaviour;
 
-    private Vault getVaultClient() throws ConfigurationException {
+    protected Vault getVaultClient() throws ConfigurationException {
         //clone former properties configuration passes to configure method
         if(vaultClient == null) {
-            Properties properties = new Properties();
             properties.setProperty(VAULT_PREFIX, vaultPrefix);
             properties.setProperty(VAULT_SECRET_BACKEND, vaultSecretBackend);
             properties.setProperty(VAULT_STORAGE_BEHAVIOUR, storageBehaviour);
