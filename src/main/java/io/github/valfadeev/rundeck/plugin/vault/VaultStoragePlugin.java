@@ -145,7 +145,7 @@ public class VaultStoragePlugin implements StoragePlugin {
 
     protected Vault getVaultClient() throws ConfigurationException {
         //clone former properties configuration passes to configure method
-        if(vaultClient == null) {
+        if(this.vaultClient == null) {
             properties.setProperty(VAULT_PREFIX, vaultPrefix);
             properties.setProperty(VAULT_SECRET_BACKEND, vaultSecretBackend);
             properties.setProperty(VAULT_ADDRESS, address);
@@ -214,7 +214,8 @@ public class VaultStoragePlugin implements StoragePlugin {
 
     protected void lookup(){
         try {
-            if (getVaultClient().auth().lookupSelf().getTTL() <= guaranteedTokenValidity) {
+            long ttl = getVaultClient().auth().lookupSelf().getTTL();
+            if (ttl <= guaranteedTokenValidity) {
                 loginVault(clientProvider);
             }
         } catch (VaultException e) {
@@ -229,10 +230,11 @@ public class VaultStoragePlugin implements StoragePlugin {
     }
 
     private void loginVault(VaultClientProvider provider){
-        try {
-            vault = getVaultClient().logical();
-        } catch (ConfigurationException e) {
-            e.printStackTrace();
+        try{
+            vault = vaultClient.logical();
+        }
+        catch (Exception ignored){
+
         }
     }
 
