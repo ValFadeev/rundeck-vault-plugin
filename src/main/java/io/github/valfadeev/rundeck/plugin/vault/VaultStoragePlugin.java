@@ -146,34 +146,90 @@ public class VaultStoragePlugin implements StoragePlugin {
     protected Vault getVaultClient() throws ConfigurationException {
         //clone former properties configuration passes to configure method
         if(this.vaultClient == null) {
-            properties.setProperty(VAULT_PREFIX, vaultPrefix);
-            properties.setProperty(VAULT_SECRET_BACKEND, vaultSecretBackend);
-            properties.setProperty(VAULT_ADDRESS, address);
-            properties.setProperty(VAULT_TOKEN, token);
-            properties.setProperty(VAULT_AUTH_BACKEND, authBackend);
-            properties.setProperty(VAULT_KEY_STORE_FILE, keyStoreFile);
-            properties.setProperty(VAULT_KEY_STORE_FILE_PASSWORD, keyStoreFilePassword);
-            properties.setProperty(VAULT_TRUST_STORE_FILE, trustStoreFile);
-            properties.setProperty(VAULT_PEM_FILE, pemFile);
-            properties.setProperty(VAULT_CLIENT_PEM_FILE, clientPemFile);
-            properties.setProperty(VAULT_CLIENT_KEY_PEM_FILE, clientKeyPemFile);
-            properties.setProperty(VAULT_VERIFY_SSL, validateSsl);
-            properties.setProperty(VAULT_USERPASS_AUTH_MOUNT, userpassAuthMount);
-            properties.setProperty(VAULT_USERNAME, username);
-            properties.setProperty(VAULT_PASSWORD, password);
-            properties.setProperty(VAULT_APPROLE_ID, approleId);
-            properties.setProperty(VAULT_APPROLE_SECRET_ID, approleSecretId);
-            properties.setProperty(VAULT_APPROLE_AUTH_MOUNT, approleAuthMount);
-            properties.setProperty(VAULT_GITHUB_TOKEN, githubToken);
-            properties.setProperty(VAULT_MAX_RETRIES, maxRetries);
-            properties.setProperty(VAULT_RETRY_INTERVAL_MILLISECONDS, retryIntervalMilliseconds);
-            properties.setProperty(VAULT_OPEN_TIMEOUT, openTimeout);
-            properties.setProperty(VAULT_READ_TIMEOUT, readTimeout);
-            properties.setProperty(VAULT_SECRET_BACKEND, secretBackend);
-            properties.setProperty(VAULT_NAMESPACE, namespace);
-            properties.setProperty(VAULT_STORAGE_BEHAVIOUR, storageBehaviour);
-            properties.setProperty(VAULT_ENGINE_VERSION, engineVersion);
-            properties.setProperty(VAULT_AUTH_NAMESPACE, authNamespace);
+            if(vaultPrefix != null){
+                properties.setProperty(VAULT_PREFIX, vaultPrefix);
+            }
+            if(vaultSecretBackend != null){
+                properties.setProperty(VAULT_SECRET_BACKEND, vaultSecretBackend);
+            }
+            if(address != null){
+                properties.setProperty(VAULT_ADDRESS, address);
+            }
+            if(token != null){
+                properties.setProperty(VAULT_TOKEN, token);
+            }
+            if(authBackend != null){
+                properties.setProperty(VAULT_AUTH_BACKEND, authBackend);
+            }
+            if(keyStoreFile != null){
+                properties.setProperty(VAULT_KEY_STORE_FILE, keyStoreFile);
+            }
+            if(keyStoreFilePassword != null){
+                properties.setProperty(VAULT_KEY_STORE_FILE_PASSWORD, keyStoreFilePassword);
+            }
+            if(trustStoreFile != null){
+                properties.setProperty(VAULT_TRUST_STORE_FILE, trustStoreFile);
+            }
+            if(pemFile != null){
+                properties.setProperty(VAULT_PEM_FILE, pemFile);
+            }
+            if(clientPemFile != null){
+                properties.setProperty(VAULT_CLIENT_PEM_FILE, clientPemFile);
+            }
+            if(clientKeyPemFile != null){
+                properties.setProperty(VAULT_CLIENT_KEY_PEM_FILE, clientKeyPemFile);
+            }
+            if(validateSsl != null){
+                properties.setProperty(VAULT_VERIFY_SSL, validateSsl);
+            }
+            if(userpassAuthMount != null){
+                properties.setProperty(VAULT_USERPASS_AUTH_MOUNT, userpassAuthMount);
+            }
+            if(username != null){
+                properties.setProperty(VAULT_USERNAME, username);
+            }
+            if(password != null){
+                properties.setProperty(VAULT_PASSWORD, password);
+            }
+            if(approleId != null){
+                properties.setProperty(VAULT_APPROLE_ID, approleId);
+            }
+            if(approleSecretId != null){
+                properties.setProperty(VAULT_APPROLE_SECRET_ID, approleSecretId);
+            }
+            if(approleAuthMount != null){
+                properties.setProperty(VAULT_APPROLE_AUTH_MOUNT, approleAuthMount);
+            }
+            if(githubToken != null){
+                properties.setProperty(VAULT_GITHUB_TOKEN, githubToken);
+            }
+            if(maxRetries != null){
+                properties.setProperty(VAULT_MAX_RETRIES, maxRetries);
+            }
+            if(retryIntervalMilliseconds != null){
+                properties.setProperty(VAULT_RETRY_INTERVAL_MILLISECONDS, retryIntervalMilliseconds);
+            }
+            if(openTimeout != null){
+                properties.setProperty(VAULT_OPEN_TIMEOUT, openTimeout);
+            }
+            if(readTimeout != null){
+                properties.setProperty(VAULT_READ_TIMEOUT, readTimeout);
+            }
+            if(secretBackend != null){
+                properties.setProperty(VAULT_SECRET_BACKEND, secretBackend);
+            }
+            if(namespace != null){
+                properties.setProperty(VAULT_NAMESPACE, namespace);
+            }
+            if(storageBehaviour != null){
+                properties.setProperty(VAULT_STORAGE_BEHAVIOUR, storageBehaviour);
+            }
+            if(engineVersion != null){
+                properties.setProperty(VAULT_ENGINE_VERSION, engineVersion);
+            }
+            if(authNamespace != null){
+                properties.setProperty(VAULT_AUTH_NAMESPACE, authNamespace);
+            }
 
             //set member variables on object on entry, lookup -> getVaultClient()
             if (storageBehaviour != null && storageBehaviour.equals("vault")) {
@@ -214,7 +270,7 @@ public class VaultStoragePlugin implements StoragePlugin {
 
     protected void lookup(){
         try {
-            long ttl = getVaultClient().auth().lookupSelf().getTTL();
+            long ttl = this.getVaultClient().auth().lookupSelf().getTTL();
             if (ttl <= guaranteedTokenValidity) {
                 loginVault(clientProvider);
             }
