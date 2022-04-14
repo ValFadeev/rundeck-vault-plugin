@@ -60,10 +60,7 @@ public class VaultStoragePlugin implements StoragePlugin {
     Properties properties = new Properties();
 
     @PluginProperty(title = "vaultPrefix", description = "username for the account to authenticate to")
-    String vaultPrefix;
-
-    @PluginProperty(title = "vaultSecretBackend", description = "password for the account to authenticate to")
-    String vaultSecretBackend;
+    String prefix;
 
     @PluginProperty(title = "Vault address", description = "Address of the Vault server", defaultValue = "https://localhost:8200")
     String address;
@@ -71,7 +68,7 @@ public class VaultStoragePlugin implements StoragePlugin {
     @PluginProperty(title = "Vault token", description = "Vault authentication token. " + "Required, if authentication backend is 'token'")
     String token;
 
-    @PluginProperty(title = "Vault auth backend", description = "Authentication backend")
+    @PluginProperty(title = "Vault auth backend", description = "Authentication backend", defaultValue = "token")
     String authBackend;
 
     @PluginProperty(title = "Key store file", description = "A Java keystore, containing a client certificate " + "that's registered with Vault's TLS Certificate auth backend.")
@@ -145,12 +142,14 @@ public class VaultStoragePlugin implements StoragePlugin {
 
     protected Vault getVaultClient() throws ConfigurationException {
         //clone former properties configuration passes to configure method
-        if(this.vaultClient == null) {
-            if(vaultPrefix != null){
-                properties.setProperty(VAULT_PREFIX, vaultPrefix);
+        if(vaultClient == null || properties.size()==0) {
+
+            if(secretBackend != null){
+                properties.setProperty(VAULT_SECRET_BACKEND, secretBackend);
             }
-            if(vaultSecretBackend != null){
-                properties.setProperty(VAULT_SECRET_BACKEND, vaultSecretBackend);
+
+            if(prefix != null){
+                properties.setProperty(VAULT_PREFIX, prefix);
             }
             if(address != null){
                 properties.setProperty(VAULT_ADDRESS, address);
@@ -239,7 +238,7 @@ public class VaultStoragePlugin implements StoragePlugin {
             guaranteedTokenValidity = calculateGuaranteedTokenValidity(properties);
 
             clientProvider = getVaultClientProvider(properties);
-            vaultClient = clientProvider.getVaultClient();
+            loginVault(clientProvider);
         }
             return vaultClient;
 
@@ -270,7 +269,7 @@ public class VaultStoragePlugin implements StoragePlugin {
 
     protected void lookup(){
         try {
-            long ttl = this.getVaultClient().auth().lookupSelf().getTTL();
+            long ttl = getVaultClient().auth().lookupSelf().getTTL();
             if (ttl <= guaranteedTokenValidity) {
                 loginVault(clientProvider);
             }
@@ -287,6 +286,7 @@ public class VaultStoragePlugin implements StoragePlugin {
 
     private void loginVault(VaultClientProvider provider){
         try{
+            vaultClient = provider.getVaultClient();
             vault = vaultClient.logical();
         }
         catch (Exception ignored){
@@ -354,7 +354,7 @@ public class VaultStoragePlugin implements StoragePlugin {
 
         try {
             lookup();
-            return vault.write(getVaultPath(object.getPath().getPath(),vaultSecretBackend,vaultPrefix), payload);
+            return vault.write(getVaultPath(object.getPath().getPath(),secretBackend,prefix), payload);
         } catch (VaultException e) {
             throw new StorageException(
                     String.format("Encountered error while writing data to Vault %s",
@@ -596,7 +596,7 @@ public class VaultStoragePlugin implements StoragePlugin {
     @Override
     public boolean deleteResource(Path path) {
         KeyObject object = this.getVaultObject(path);
-        return object.delete(vault,vaultSecretBackend,vaultPrefix);
+        return object.delete(vault,secretBackend,prefix);
     }
 
     @Override
@@ -631,8 +631,8 @@ public class VaultStoragePlugin implements StoragePlugin {
         KeyObject value= KeyObjectBuilder.builder()
                                 .path(path)
                                 .vault(vault)
-                                .vaultPrefix(vaultPrefix)
-                                .vaultSecretBackend(vaultSecretBackend)
+                                .vaultPrefix(prefix)
+                                .vaultSecretBackend(secretBackend)
                                 .build();
 
         return value;
@@ -645,7 +645,7 @@ public class VaultStoragePlugin implements StoragePlugin {
     }
 
     private List<String> getVaultList(String path) throws VaultException {
-        LogicalResponse response = vault.list(getVaultPath(path,vaultSecretBackend,vaultPrefix));
+        LogicalResponse response = vault.list(getVaultPath(path,secretBackend,prefix));
         if (response.getRestResponse().getStatus()==403){
             String body = new String(response.getRestResponse().getBody());
             throw StorageException.listException(
