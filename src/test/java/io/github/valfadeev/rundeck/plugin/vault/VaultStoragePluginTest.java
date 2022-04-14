@@ -122,7 +122,7 @@ public class VaultStoragePluginTest {
 
         vaultStoragePlugin.lookup();
 
-        verify(vaultClientProvider).getVaultClient();
+        verify(vaultClientProvider, times(2)).getVaultClient();
     }
 
     @Test
@@ -159,6 +159,6 @@ public class VaultStoragePluginTest {
         vaultStoragePlugin.properties=properties;
         vaultStoragePlugin.lookup();
 
-        verify(vaultClientProvider).getVaultClient();
+        verify(vaultClientProvider, times(2)).getVaultClient();
     }
 }
