@@ -18,6 +18,7 @@ import com.dtolabs.rundeck.core.plugins.configuration.Describable;
 import com.dtolabs.rundeck.core.plugins.configuration.Description;
 import com.dtolabs.rundeck.core.storage.ResourceMeta;
 import com.dtolabs.rundeck.plugins.ServiceNameConstants;
+import com.dtolabs.rundeck.plugins.descriptions.PluginProperty;
 import com.dtolabs.rundeck.plugins.storage.StoragePlugin;
 import org.rundeck.storage.api.Path;
 import org.rundeck.storage.api.PathUtil;
@@ -34,7 +35,7 @@ import static io.github.valfadeev.rundeck.plugin.vault.ConfigOptions.*;
  * @since 2017-09-18
  */
 @Plugin(name = "vault-storage", service = ServiceNameConstants.Storage)
-public class VaultStoragePlugin implements StoragePlugin, Configurable, Describable {
+public class VaultStoragePlugin implements StoragePlugin {
 
     java.util.logging.Logger log = java.util.logging.Logger.getLogger("vault-storage");
 
@@ -50,35 +51,197 @@ public class VaultStoragePlugin implements StoragePlugin, Configurable, Describa
 
     public static final int MAX_GUARANTEED_VALIDITY_SECONDS = 60;
 
-    private String vaultPrefix;
-    private String vaultSecretBackend;
     private Logical vault;
     private int guaranteedTokenValidity;
     //if is true, objects will be saved with rundeck default headers behaivour
     private boolean rundeckObject=true;
     private VaultClientProvider clientProvider;
     private Vault vaultClient;
+    Properties properties = new Properties();
 
+    @PluginProperty(title = "vaultPrefix", description = "username for the account to authenticate to")
+    String prefix;
 
-    @Override
-    public Description getDescription() {
-        return DescriptionProvider.getDescription();
-    }
+    @PluginProperty(title = "Vault address", description = "Address of the Vault server", defaultValue = "https://localhost:8200")
+    String address;
 
-    @Override
-    public void configure(Properties configuration) throws ConfigurationException {
-        vaultPrefix = configuration.getProperty(VAULT_PREFIX);
-        vaultSecretBackend = configuration.getProperty(VAULT_SECRET_BACKEND);
-        clientProvider = getVaultClientProvider(configuration);
-        loginVault(clientProvider);
+    @PluginProperty(title = "Vault token", description = "Vault authentication token. " + "Required, if authentication backend is 'token'")
+    String token;
 
-        //check storage behaivour
-        String storageBehaviour=configuration.getProperty(VAULT_STORAGE_BEHAVIOUR);
-        if(storageBehaviour!=null && storageBehaviour.equals("vault")){
-            rundeckObject=false;
+    @PluginProperty(title = "Vault auth backend", description = "Authentication backend", defaultValue = "token")
+    String authBackend;
+
+    @PluginProperty(title = "Key store file", description = "A Java keystore, containing a client certificate " + "that's registered with Vault's TLS Certificate auth backend.")
+    String keyStoreFile;
+
+    @PluginProperty(title = "Key store password", description = "The password needed to access the keystore", defaultValue = "")
+    String keyStoreFilePassword;
+
+    @PluginProperty(title = "Truststore file", description = "A JKS truststore file, containing the Vault " + "server's X509 certificate")
+    String trustStoreFile;
+
+    @PluginProperty(title = "PEM file", description = "The path of a file containing an X.509 certificate, " + "in unencrypted PEM format with UTF-8 encoding.")
+    String pemFile;
+
+    @PluginProperty(title = "Client PEM file", description = "The path of a file containing an X.509 certificate, " + "in unencrypted PEM format with UTF-8 encoding.")
+    String clientPemFile;
+
+    @PluginProperty(title = "Client Key PEM file", description = "The path of a file containing an RSA private key, " + "in unencrypted PEM format with UTF-8 encoding.")
+    String clientKeyPemFile;
+
+    @PluginProperty(title = "Disable SSL validation", description = "Specifies whether SSL validation is to be performed", defaultValue = "true", required = true)
+    String validateSsl;
+
+    @PluginProperty(title = "Userpass Mount name", description = "The mount name of the Userpass authentication back end", defaultValue = "userpass")
+    String userpassAuthMount;
+
+    @PluginProperty(title = "User name", description = "Required for user/password and LDAP authentication backend")
+    String username;
+
+    @PluginProperty(title = "Password", description = "Required for user/password and LDAP authentication backend")
+    String password;
+
+    @PluginProperty(title = "AppRole role ID", description = "The role-id used for authentication")
+    String approleId;
+
+    @PluginProperty(title = "AppRole secret ID", description = "The secret-id used for authentication")
+    String approleSecretId;
+
+    @PluginProperty(title = "AppRole mount name", description = "The mount name of the AppRole authentication back end")
+    String approleAuthMount;
+
+    @PluginProperty(title = "GitHub token", description = "The app-id used for authentication")
+    String githubToken;
+
+    @PluginProperty(title = "Max retries", description = "Maximum number of connection " + "retries to Vault server", defaultValue = "5")
+    String maxRetries;
+
+    @PluginProperty(title = "Retry interval", description = "Connection retry interval, in ms", defaultValue = "1000")
+    String retryIntervalMilliseconds;
+
+    @PluginProperty(title = "Open timeout", description = "Connection opening timeout, in seconds", defaultValue = "5")
+    String openTimeout;
+
+    @PluginProperty(title = "Read timeout", description = "Response read timeout, in seconds", defaultValue = "20")
+    String readTimeout;
+
+    @PluginProperty(title = "Secret Backend", description = "The secret backend to use in vault", defaultValue = "secret")
+    String secretBackend;
+
+    @PluginProperty(title = "Namespace", description = "The namespace to access and save the secrets")
+    String namespace;
+
+    @PluginProperty(title = "storageBehaviour", description = "storageBehaviour for the account to authenticate to")
+    String storageBehaviour;
+
+    @PluginProperty(title = "Vault Engine Version", description = "Key/Value Secret Engine Config", defaultValue = "1")
+    String engineVersion;
+
+    @PluginProperty(title = "Authentication Namespace", description = "The namespace for authentication")
+    String authNamespace;
+
+    protected Vault getVaultClient() throws ConfigurationException {
+        //clone former properties configuration passes to configure method
+        if(vaultClient == null || properties.size()==0) {
+
+            if(secretBackend != null){
+                properties.setProperty(VAULT_SECRET_BACKEND, secretBackend);
+            }
+
+            if(prefix != null){
+                properties.setProperty(VAULT_PREFIX, prefix);
+            }
+            if(address != null){
+                properties.setProperty(VAULT_ADDRESS, address);
+            }
+            if(token != null){
+                properties.setProperty(VAULT_TOKEN, token);
+            }
+            if(authBackend != null){
+                properties.setProperty(VAULT_AUTH_BACKEND, authBackend);
+            }
+            if(keyStoreFile != null){
+                properties.setProperty(VAULT_KEY_STORE_FILE, keyStoreFile);
+            }
+            if(keyStoreFilePassword != null){
+                properties.setProperty(VAULT_KEY_STORE_FILE_PASSWORD, keyStoreFilePassword);
+            }
+            if(trustStoreFile != null){
+                properties.setProperty(VAULT_TRUST_STORE_FILE, trustStoreFile);
+            }
+            if(pemFile != null){
+                properties.setProperty(VAULT_PEM_FILE, pemFile);
+            }
+            if(clientPemFile != null){
+                properties.setProperty(VAULT_CLIENT_PEM_FILE, clientPemFile);
+            }
+            if(clientKeyPemFile != null){
+                properties.setProperty(VAULT_CLIENT_KEY_PEM_FILE, clientKeyPemFile);
+            }
+            if(validateSsl != null){
+                properties.setProperty(VAULT_VERIFY_SSL, validateSsl);
+            }
+            if(userpassAuthMount != null){
+                properties.setProperty(VAULT_USERPASS_AUTH_MOUNT, userpassAuthMount);
+            }
+            if(username != null){
+                properties.setProperty(VAULT_USERNAME, username);
+            }
+            if(password != null){
+                properties.setProperty(VAULT_PASSWORD, password);
+            }
+            if(approleId != null){
+                properties.setProperty(VAULT_APPROLE_ID, approleId);
+            }
+            if(approleSecretId != null){
+                properties.setProperty(VAULT_APPROLE_SECRET_ID, approleSecretId);
+            }
+            if(approleAuthMount != null){
+                properties.setProperty(VAULT_APPROLE_AUTH_MOUNT, approleAuthMount);
+            }
+            if(githubToken != null){
+                properties.setProperty(VAULT_GITHUB_TOKEN, githubToken);
+            }
+            if(maxRetries != null){
+                properties.setProperty(VAULT_MAX_RETRIES, maxRetries);
+            }
+            if(retryIntervalMilliseconds != null){
+                properties.setProperty(VAULT_RETRY_INTERVAL_MILLISECONDS, retryIntervalMilliseconds);
+            }
+            if(openTimeout != null){
+                properties.setProperty(VAULT_OPEN_TIMEOUT, openTimeout);
+            }
+            if(readTimeout != null){
+                properties.setProperty(VAULT_READ_TIMEOUT, readTimeout);
+            }
+            if(secretBackend != null){
+                properties.setProperty(VAULT_SECRET_BACKEND, secretBackend);
+            }
+            if(namespace != null){
+                properties.setProperty(VAULT_NAMESPACE, namespace);
+            }
+            if(storageBehaviour != null){
+                properties.setProperty(VAULT_STORAGE_BEHAVIOUR, storageBehaviour);
+            }
+            if(engineVersion != null){
+                properties.setProperty(VAULT_ENGINE_VERSION, engineVersion);
+            }
+            if(authNamespace != null){
+                properties.setProperty(VAULT_AUTH_NAMESPACE, authNamespace);
+            }
+
+            //set member variables on object on entry, lookup -> getVaultClient()
+            if (storageBehaviour != null && storageBehaviour.equals("vault")) {
+                rundeckObject = false;
+            }
+
+            guaranteedTokenValidity = calculateGuaranteedTokenValidity(properties);
+
+            clientProvider = getVaultClientProvider(properties);
+            loginVault(clientProvider);
         }
+            return vaultClient;
 
-        guaranteedTokenValidity = calculateGuaranteedTokenValidity(configuration);
     }
 
     protected VaultClientProvider getVaultClientProvider(Properties configuration) {
@@ -106,7 +269,8 @@ public class VaultStoragePlugin implements StoragePlugin, Configurable, Describa
 
     protected void lookup(){
         try {
-            if (vaultClient.auth().lookupSelf().getTTL() <= guaranteedTokenValidity) {
+            long ttl = getVaultClient().auth().lookupSelf().getTTL();
+            if (ttl <= guaranteedTokenValidity) {
                 loginVault(clientProvider);
             }
         } catch (VaultException e) {
@@ -115,15 +279,18 @@ public class VaultStoragePlugin implements StoragePlugin, Configurable, Describa
             } else {
                 e.printStackTrace();
             }
+        } catch (ConfigurationException e) {
+            e.printStackTrace();
         }
     }
 
     private void loginVault(VaultClientProvider provider){
-        try {
+        try{
             vaultClient = provider.getVaultClient();
             vault = vaultClient.logical();
-        } catch (ConfigurationException e) {
-            e.printStackTrace();
+        }
+        catch (Exception ignored){
+
         }
     }
 
@@ -187,7 +354,7 @@ public class VaultStoragePlugin implements StoragePlugin, Configurable, Describa
 
         try {
             lookup();
-            return vault.write(getVaultPath(object.getPath().getPath(),vaultSecretBackend,vaultPrefix), payload);
+            return vault.write(getVaultPath(object.getPath().getPath(),secretBackend,prefix), payload);
         } catch (VaultException e) {
             throw new StorageException(
                     String.format("Encountered error while writing data to Vault %s",
@@ -429,7 +596,7 @@ public class VaultStoragePlugin implements StoragePlugin, Configurable, Describa
     @Override
     public boolean deleteResource(Path path) {
         KeyObject object = this.getVaultObject(path);
-        return object.delete(vault,vaultSecretBackend,vaultPrefix);
+        return object.delete(vault,secretBackend,prefix);
     }
 
     @Override
@@ -464,8 +631,8 @@ public class VaultStoragePlugin implements StoragePlugin, Configurable, Describa
         KeyObject value= KeyObjectBuilder.builder()
                                 .path(path)
                                 .vault(vault)
-                                .vaultPrefix(vaultPrefix)
-                                .vaultSecretBackend(vaultSecretBackend)
+                                .vaultPrefix(prefix)
+                                .vaultSecretBackend(secretBackend)
                                 .build();
 
         return value;
@@ -478,7 +645,7 @@ public class VaultStoragePlugin implements StoragePlugin, Configurable, Describa
     }
 
     private List<String> getVaultList(String path) throws VaultException {
-        LogicalResponse response = vault.list(getVaultPath(path,vaultSecretBackend,vaultPrefix));
+        LogicalResponse response = vault.list(getVaultPath(path,secretBackend,prefix));
         if (response.getRestResponse().getStatus()==403){
             String body = new String(response.getRestResponse().getBody());
             throw StorageException.listException(

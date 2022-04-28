@@ -23,7 +23,7 @@ class VaultStoragePluginSpec extends Specification{
                                  "authBackend":"token",
                                  "token":"123456"]
         def plugin = new VaultStoragePlugin()
-        plugin.configure(properties)
+        plugin.properties=properties;
 
         Logical vault = Mock(Logical){
             list(_)>>Mock(LogicalResponse){
@@ -65,7 +65,7 @@ class VaultStoragePluginSpec extends Specification{
                                  "authBackend":"token",
                                  "token":"123456"]
         def plugin = new VaultStoragePlugin()
-        plugin.configure(properties)
+        plugin.properties=properties;
 
         Logical vault = Mock(Logical){
             list(_)>>Mock(LogicalResponse){

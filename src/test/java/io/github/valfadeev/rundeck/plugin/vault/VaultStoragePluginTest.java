@@ -62,6 +62,7 @@ public class VaultStoragePluginTest {
 
         doReturn(vaultClientProvider).when(vaultStoragePlugin).getVaultClientProvider(properties);
         doReturn(vault).when(vaultClientProvider).getVaultClient();
+        doReturn(vault).when(vaultStoragePlugin).getVaultClient();
         doReturn(logical).when(vault).logical();
 
         doReturn(auth).when(vault).auth();
@@ -77,7 +78,6 @@ public class VaultStoragePluginTest {
         doReturn("2").when(properties).getProperty(VAULT_OPEN_TIMEOUT);
         doReturn("1000").when(properties).getProperty(VAULT_RETRY_INTERVAL_MILLISECONDS);
 
-        vaultStoragePlugin.configure(properties);
         clearInvocations(vaultClientProvider);
 
         vaultStoragePlugin.lookup();
@@ -107,17 +107,22 @@ public class VaultStoragePluginTest {
         doReturn("approle").when(properties).getProperty(VAULT_SECRET_BACKEND);
         doReturn("vault").when(properties).getProperty(VAULT_STORAGE_BEHAVIOUR);
 
+        doReturn("rundeck").when(properties).setProperty(VAULT_PREFIX, "rundeck");
+        doReturn("approle").when(properties).setProperty(VAULT_SECRET_BACKEND, "approle");
+        doReturn("vault").when(properties).setProperty(VAULT_STORAGE_BEHAVIOUR, "vault");
+
         doReturn("5").when(properties).getProperty(VAULT_MAX_RETRIES);
         doReturn("2").when(properties).getProperty(VAULT_READ_TIMEOUT);
         doReturn("2").when(properties).getProperty(VAULT_OPEN_TIMEOUT);
         doReturn("1000").when(properties).getProperty(VAULT_RETRY_INTERVAL_MILLISECONDS);
 
-        vaultStoragePlugin.configure(properties);
         clearInvocations(vaultClientProvider);
+
+        vaultStoragePlugin.properties=properties;
 
         vaultStoragePlugin.lookup();
 
-        verify(vaultClientProvider).getVaultClient();
+        verify(vaultClientProvider, times(2)).getVaultClient();
     }
 
     @Test
@@ -140,16 +145,20 @@ public class VaultStoragePluginTest {
         doReturn("approle").when(properties).getProperty(VAULT_SECRET_BACKEND);
         doReturn("vault").when(properties).getProperty(VAULT_STORAGE_BEHAVIOUR);
 
+        doReturn("rundeck").when(properties).setProperty(VAULT_PREFIX, "rundeck");
+        doReturn("approle").when(properties).setProperty(VAULT_SECRET_BACKEND, "approle");
+        doReturn("vault").when(properties).setProperty(VAULT_STORAGE_BEHAVIOUR, "vault");
+
         doReturn("5").when(properties).getProperty(VAULT_MAX_RETRIES);
         doReturn("2").when(properties).getProperty(VAULT_READ_TIMEOUT);
         doReturn("2").when(properties).getProperty(VAULT_OPEN_TIMEOUT);
         doReturn("1000").when(properties).getProperty(VAULT_RETRY_INTERVAL_MILLISECONDS);
 
-        vaultStoragePlugin.configure(properties);
         clearInvocations(vaultClientProvider);
 
+        vaultStoragePlugin.properties=properties;
         vaultStoragePlugin.lookup();
 
-        verify(vaultClientProvider).getVaultClient();
+        verify(vaultClientProvider, times(2)).getVaultClient();
     }
 }
