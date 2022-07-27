@@ -15,6 +15,12 @@ if (( $version > 1 )); then
     vault kv put secret/app/folder/another.secret test=hello
     vault kv put secret/app/folder/multiple2 name=admin password=admin server=rundeck
 
+    vault secrets enable -version=2 -path=rundeck kv
+    vault kv put rundeck/simple.secret foo=world
+    vault kv put rundeck/multiples name=admin password=admin server=rundeck
+    vault kv put rundeck/folder/another.secret test=hello
+    vault kv put rundeck/folder/multiple2 name=admin password=admin server=rundeck
+
 else
     echo "Vault 0.x"
 

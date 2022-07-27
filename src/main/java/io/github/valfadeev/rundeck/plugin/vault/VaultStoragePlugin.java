@@ -259,7 +259,7 @@ public class VaultStoragePlugin implements StoragePlugin {
     }
 
     public static String getVaultPath(String rawPath, String vaultSecretBackend, String vaultPrefix) {
-        String path= String.format("%s/%s/%s", vaultSecretBackend, vaultPrefix, rawPath);
+        String path= vaultPrefix != null && !vaultPrefix.equals("") ? String.format("%s/%s/%s", vaultSecretBackend, vaultPrefix, rawPath) : String.format("%s/%s", vaultSecretBackend, rawPath);
         return path;
     }
 
