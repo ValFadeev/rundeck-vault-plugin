@@ -182,8 +182,7 @@ class VaultClientProvider {
 
                 } catch (VaultException e) {
                     throw new ConfigurationException(
-                            String.format("Encountered error while authenticating with %s",
-                                    vaultAuthBackend)
+                            String.format("Encountered error while authenticating with %s: %s", vaultAuthBackend, e.getLocalizedMessage())
                     );
                 }
                 break;
