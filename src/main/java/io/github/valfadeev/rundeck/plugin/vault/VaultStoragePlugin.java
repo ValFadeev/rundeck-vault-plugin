@@ -269,8 +269,8 @@ public class VaultStoragePlugin implements StoragePlugin {
 
     protected void lookup(){
         try {
-            long ttl = getVaultClient().auth().lookupSelf().getTTL();
-            if (ttl <= guaranteedTokenValidity) {
+            LookupResponse lookupSelf = getVaultClient().auth().lookupSelf();
+            if (lookupSelf.getTTL() <= guaranteedTokenValidity || lookupSelf.getNumUses() < 0) {
                 loginVault(clientProvider);
             }
         } catch (VaultException e) {
