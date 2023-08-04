@@ -74,6 +74,7 @@ public class VaultStoragePlugin implements StoragePlugin {
     String keyStoreFile;
 
     @PluginProperty(title = "Key store password", description = "The password needed to access the keystore", defaultValue = "")
+    @RenderingOption(key = StringRenderingConstants.DISPLAY_TYPE_KEY, value = "PASSWORD")
     String keyStoreFilePassword;
 
     @PluginProperty(title = "Truststore file", description = "A JKS truststore file, containing the Vault " + "server's X509 certificate")
@@ -111,6 +112,7 @@ public class VaultStoragePlugin implements StoragePlugin {
     String approleAuthMount;
 
     @PluginProperty(title = "GitHub token", description = "The app-id used for authentication")
+    @RenderingOption(key = StringRenderingConstants.DISPLAY_TYPE_KEY, value = "PASSWORD")
     String githubToken;
 
     @PluginProperty(title = "Max retries", description = "Maximum number of connection " + "retries to Vault server", defaultValue = "5")
